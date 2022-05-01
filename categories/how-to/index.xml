@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>KubeTips</title>
-    <link>https://mfranzon.github.io/</link>
-    <description>Recent content on KubeTips</description>
+    <title>How to on KubeTips</title>
+    <link>https://mfranzon.github.io/categories/how-to/</link>
+    <description>Recent content in How to on KubeTips</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 17 Apr 2022 11:11:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 17 Apr 2022 11:11:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/categories/how-to/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Kubernetes local solutions</title>
       <link>https://mfranzon.github.io/posts/selfhostedk8s/</link>
@@ -15,8 +15,6 @@
       <description>In this article I want to summarize the pricipal software used to deploy a local Kubernetes cluster on your local machine. Having a local deployment of your infrastructure is always a good idea for testing and debugging. There are several platforms you can choose to quickly have your self-hosted Kubernetes.
 Minikube Minikube is probably the most used choice. It can runs in all the major OS and offers an easy installation guide.</description>
     </item>
-    
-    
     
   </channel>
 </rss>

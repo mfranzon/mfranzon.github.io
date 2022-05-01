@@ -5,13 +5,22 @@
     <link>https://mfranzon.github.io/tags/</link>
     <description>Recent content in Tags on KubeTips</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 17 Apr 2022 11:10:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 17 Apr 2022 11:11:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>machine</title>
-      <link>https://mfranzon.github.io/tags/machine/</link>
-      <pubDate>Sun, 17 Apr 2022 11:10:21 +0200</pubDate>
+      <title>on-prem</title>
+      <link>https://mfranzon.github.io/tags/on-prem/</link>
+      <pubDate>Sun, 17 Apr 2022 11:11:21 +0200</pubDate>
       
-      <guid>https://mfranzon.github.io/tags/machine/</guid>
+      <guid>https://mfranzon.github.io/tags/on-prem/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>sandbox</title>
+      <link>https://mfranzon.github.io/tags/sandbox/</link>
+      <pubDate>Sun, 17 Apr 2022 11:11:21 +0200</pubDate>
+      
+      <guid>https://mfranzon.github.io/tags/sandbox/</guid>
       <description></description>
     </item>
     
