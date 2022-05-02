@@ -7,7 +7,7 @@
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Sun, 17 Apr 2022 11:11:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/tags/on-prem/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Kubernetes local solutions</title>
+      <title>Kubernetes: solutions to deploy it locally</title>
       <link>https://mfranzon.github.io/posts/selfhostedk8s/</link>
       <pubDate>Sun, 17 Apr 2022 11:11:21 +0200</pubDate>
       

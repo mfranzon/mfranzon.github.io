@@ -7,13 +7,26 @@
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Sun, 17 Apr 2022 11:11:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Kubernetes local solutions</title>
+      <title>Kubernetes: solutions to deploy it locally</title>
       <link>https://mfranzon.github.io/posts/selfhostedk8s/</link>
       <pubDate>Sun, 17 Apr 2022 11:11:21 +0200</pubDate>
       
       <guid>https://mfranzon.github.io/posts/selfhostedk8s/</guid>
       <description>In this article I want to summarize the pricipal software used to deploy a local Kubernetes cluster on your local machine. Having a local deployment of your infrastructure is always a good idea for testing and debugging. There are several platforms you can choose to quickly have your self-hosted Kubernetes.
 Minikube Minikube is probably the most used choice. It can runs in all the major OS and offers an easy installation guide.</description>
+    </item>
+    
+    <item>
+      <title>About Me</title>
+      <link>https://mfranzon.github.io/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://mfranzon.github.io/about/</guid>
+      <description>Hi there! I&amp;rsquo;m Marco Franzon.
+I work as a Software Developer for a living.
+Contact Me Want to have a professional chat with me? Feel free to drop a DM! :smile:
+These are the platforms you can find me on:
+ Linkedin: https://www.linkedin.com/in/marco-franzon/ Twitter: @marcofranzon_ap  Note: I&amp;rsquo;m more active on Twitter, so you&amp;rsquo;ll definitely want to DM me there.</description>
     </item>
     
     

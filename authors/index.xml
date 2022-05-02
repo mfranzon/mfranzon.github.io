@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Authors on KubeTips</title>
+    <link>https://mfranzon.github.io/authors/</link>
+    <description>Recent content in Authors on KubeTips</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Sun, 17 Apr 2022 11:11:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/authors/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Marco Franzon</title>
+      <link>https://mfranzon.github.io/authors/marco-franzon/</link>
+      <pubDate>Sun, 17 Apr 2022 11:11:21 +0200</pubDate>
+      
+      <guid>https://mfranzon.github.io/authors/marco-franzon/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
