@@ -22,13 +22,21 @@ Minikube Minikube is probably the most used choice. It can runs in all the major
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://mfranzon.github.io/about/</guid>
-      <description>Hi there! I&amp;rsquo;m Marco Franzon.
-I work as a Software Developer for a living.
-Contact Me Want to have a professional chat with me? Feel free to drop a DM! :smile:
-These are the platforms you can find me on:
- Linkedin: https://www.linkedin.com/in/marco-franzon/ Twitter: @marcofranzon_ap  Note: I&amp;rsquo;m more active on Twitter, so you&amp;rsquo;ll definitely want to DM me there.</description>
+      <description>Hi there! I&amp;rsquo;m Marco Franzon and this is KubeTips.
+I would like to have a place in which share what I find interesting and curious using frequently Docker and Kubernetes. As I spend mostly of my time writing Python code and doing DevOps stuff with containers, everyday I face out new bugs or challenges to solve, sometimes it is fun sometimes it is frustrating, but always I learn something new.</description>
     </item>
     
+    
+    <item>
+      <title>How to contribute</title>
+      <link>https://mfranzon.github.io/contribute/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://mfranzon.github.io/contribute/</guid>
+      <description>The main philosophy of this site is to share the knowledge between developers that have found new solutions for everyday problems.
+If you want to tell your &amp;ldquo;how to&amp;rdquo;, or you think that an article is incomplete or you can do it better, you are in the right place. All the code of this website is public on Github.
+ Clone the repo Add your post in ./kubetips/content/posts or modify an existing one.</description>
+    </item>
     
     
   </channel>
