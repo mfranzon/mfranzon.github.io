@@ -13,7 +13,7 @@
       
       <guid>https://kubetips.cloud/posts/k8scloud/</guid>
       <description>One of the most used service, to have your Kubernetes cluster deploy in cloud, is the Elastic Kubernetes Service provided by AWS.
-EKS (more details here regarding pricing and general overview) is a managed service that helps make it easier to run Kubernetes on AWS. It is defined as containers-as-a-service (CaaS) that simplifies Kubernetes deployment on AWS. Practically speacking, you do not need to manage the installation of Kubernetes on EC2 instances but you can leave the installation to EKS.</description>
+EKS, defined as containers-as-a-service (CaaS), (more details here regarding pricing and general overview) is a managed service that helps to run Kubernetes on AWS. Practically speaking, you do not need to manage the installation of Kubernetes on EC2 instances but you can leave all the configuration stuff to the services provided by EKS.</description>
     </item>
     
   </channel>
