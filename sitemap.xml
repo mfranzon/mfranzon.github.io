@@ -2,42 +2,51 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://mfranzon.github.io/authors/</loc>
+    <loc>https://kubetips.cloud/authors/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/tags/aws/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/categories/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/tags/cloud/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/categories/how-to/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/posts/k8scloud/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/authors/marco-franzon/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/posts/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/tags/</loc>
+    <lastmod>2022-05-04T20:24:02+02:00</lastmod>
+  </url><url>
+    <loc>https://kubetips.cloud/posts/selfhostedk8s/</loc>
     <lastmod>2022-04-17T11:11:21+02:00</lastmod>
   </url><url>
-    <loc>https://mfranzon.github.io/categories/</loc>
+    <loc>https://kubetips.cloud/tags/on-prem/</loc>
     <lastmod>2022-04-17T11:11:21+02:00</lastmod>
   </url><url>
-    <loc>https://mfranzon.github.io/categories/how-to/</loc>
+    <loc>https://kubetips.cloud/tags/sandbox/</loc>
     <lastmod>2022-04-17T11:11:21+02:00</lastmod>
   </url><url>
-    <loc>https://mfranzon.github.io/posts/selfhostedk8s/</loc>
-    <lastmod>2022-04-17T11:11:21+02:00</lastmod>
+    <loc>https://kubetips.cloud/about/</loc>
   </url><url>
-    <loc>https://mfranzon.github.io/</loc>
-    <lastmod>2022-04-17T11:11:21+02:00</lastmod>
+    <loc>https://kubetips.cloud/archive/</loc>
   </url><url>
-    <loc>https://mfranzon.github.io/authors/marco-franzon/</loc>
-    <lastmod>2022-04-17T11:11:21+02:00</lastmod>
+    <loc>https://kubetips.cloud/contribute/</loc>
   </url><url>
-    <loc>https://mfranzon.github.io/tags/on-prem/</loc>
-    <lastmod>2022-04-17T11:11:21+02:00</lastmod>
-  </url><url>
-    <loc>https://mfranzon.github.io/posts/</loc>
-    <lastmod>2022-04-17T11:11:21+02:00</lastmod>
-  </url><url>
-    <loc>https://mfranzon.github.io/tags/sandbox/</loc>
-    <lastmod>2022-04-17T11:11:21+02:00</lastmod>
-  </url><url>
-    <loc>https://mfranzon.github.io/tags/</loc>
-    <lastmod>2022-04-17T11:11:21+02:00</lastmod>
-  </url><url>
-    <loc>https://mfranzon.github.io/about/</loc>
-  </url><url>
-    <loc>https://mfranzon.github.io/archive/</loc>
-  </url><url>
-    <loc>https://mfranzon.github.io/contribute/</loc>
-  </url><url>
-    <loc>https://mfranzon.github.io/search/</loc>
+    <loc>https://kubetips.cloud/search/</loc>
   </url>
 </urlset>

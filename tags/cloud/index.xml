@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Posts on KubeTips</title>
-    <link>https://kubetips.cloud/posts/</link>
-    <description>Recent content in Posts on KubeTips</description>
+    <title>cloud on KubeTips</title>
+    <link>https://kubetips.cloud/tags/cloud/</link>
+    <description>Recent content in cloud on KubeTips</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 04 May 2022 20:24:02 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 04 May 2022 20:24:02 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/tags/cloud/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Kubernetes in Cloud: easy way to deploy an EKS cluster (AWS)</title>
       <link>https://kubetips.cloud/posts/k8scloud/</link>
@@ -14,16 +14,6 @@
       <guid>https://kubetips.cloud/posts/k8scloud/</guid>
       <description>One of the most used service, to have your Kubernetes cluster deploy in cloud, is the Elastic Kubernetes Service provided by AWS.
 EKS (more details here regarding pricing and general overview) is a managed service that helps make it easier to run Kubernetes on AWS. It is defined as containers-as-a-service (CaaS) that simplifies Kubernetes deployment on AWS. Practically speacking, you do not need to manage the installation of Kubernetes on EC2 instances but you can leave the installation to EKS.</description>
-    </item>
-    
-    <item>
-      <title>Kubernetes: solutions to deploy it locally</title>
-      <link>https://kubetips.cloud/posts/selfhostedk8s/</link>
-      <pubDate>Sun, 17 Apr 2022 11:11:21 +0200</pubDate>
-      
-      <guid>https://kubetips.cloud/posts/selfhostedk8s/</guid>
-      <description>In this article I want to summarize the most used softwares to deploy a local Kubernetes cluster on your local machine. Having a local deployment of your infrastructure is always a good idea for testing and debugging. There are several platforms you can choose to quickly have your self-hosted Kubernetes.
-Minikube Minikube is probably the most used choice. It can runs in all the major OS and offers an easy installation guide.</description>
     </item>
     
   </channel>

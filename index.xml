@@ -2,26 +2,36 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>KubeTips</title>
-    <link>https://mfranzon.github.io/</link>
+    <link>https://kubetips.cloud/</link>
     <description>Recent content on KubeTips</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 17 Apr 2022 11:11:21 +0200</lastBuildDate><atom:link href="https://mfranzon.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 04 May 2022 20:24:02 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kubernetes in Cloud: easy way to deploy an EKS cluster (AWS)</title>
+      <link>https://kubetips.cloud/posts/k8scloud/</link>
+      <pubDate>Wed, 04 May 2022 20:24:02 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/k8scloud/</guid>
+      <description>One of the most used service, to have your Kubernetes cluster deploy in cloud, is the Elastic Kubernetes Service provided by AWS.
+EKS (more details here regarding pricing and general overview) is a managed service that helps make it easier to run Kubernetes on AWS. It is defined as containers-as-a-service (CaaS) that simplifies Kubernetes deployment on AWS. Practically speacking, you do not need to manage the installation of Kubernetes on EC2 instances but you can leave the installation to EKS.</description>
+    </item>
+    
     <item>
       <title>Kubernetes: solutions to deploy it locally</title>
-      <link>https://mfranzon.github.io/posts/selfhostedk8s/</link>
+      <link>https://kubetips.cloud/posts/selfhostedk8s/</link>
       <pubDate>Sun, 17 Apr 2022 11:11:21 +0200</pubDate>
       
-      <guid>https://mfranzon.github.io/posts/selfhostedk8s/</guid>
-      <description>In this article I want to summarize the pricipal software used to deploy a local Kubernetes cluster on your local machine. Having a local deployment of your infrastructure is always a good idea for testing and debugging. There are several platforms you can choose to quickly have your self-hosted Kubernetes.
+      <guid>https://kubetips.cloud/posts/selfhostedk8s/</guid>
+      <description>In this article I want to summarize the most used softwares to deploy a local Kubernetes cluster on your local machine. Having a local deployment of your infrastructure is always a good idea for testing and debugging. There are several platforms you can choose to quickly have your self-hosted Kubernetes.
 Minikube Minikube is probably the most used choice. It can runs in all the major OS and offers an easy installation guide.</description>
     </item>
     
     <item>
       <title>About Me</title>
-      <link>https://mfranzon.github.io/about/</link>
+      <link>https://kubetips.cloud/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://mfranzon.github.io/about/</guid>
+      <guid>https://kubetips.cloud/about/</guid>
       <description>Hi there! I&amp;rsquo;m Marco Franzon and this is KubeTips.
 I would like to have a place in which share what I find interesting and curious using frequently Docker and Kubernetes. As I spend mostly of my time writing Python code and doing DevOps stuff with containers, everyday I face out new bugs or challenges to solve, sometimes it is fun sometimes it is frustrating, but always I learn something new.</description>
     </item>
@@ -29,11 +39,11 @@ I would like to have a place in which share what I find interesting and curious 
     
     <item>
       <title>How to contribute</title>
-      <link>https://mfranzon.github.io/contribute/</link>
+      <link>https://kubetips.cloud/contribute/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://mfranzon.github.io/contribute/</guid>
-      <description>The main philosophy of this site is to share the knowledge between developers that have found new solutions for everyday problems.
+      <guid>https://kubetips.cloud/contribute/</guid>
+      <description>The main philosophy of this website is to share the knowledge between developers that have found new solutions for everyday problems.
 If you want to tell your &amp;ldquo;how to&amp;rdquo;, or you think that an article is incomplete or you can do it better, you are in the right place. All the code of this website is public on Github.
  Clone the repo Add your post in ./kubetips/content/posts or modify an existing one.</description>
     </item>
