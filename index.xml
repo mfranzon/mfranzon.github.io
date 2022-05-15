@@ -44,8 +44,8 @@ I would like to have a place in which share what I find interesting and curious 
       
       <guid>https://kubetips.cloud/contribute/</guid>
       <description>The main philosophy of this website is to share the knowledge between developers that have found new solutions for everyday problems.
-If you want to tell your &amp;ldquo;how to&amp;rdquo;, or you think that an article is incomplete or you can do it better, you are in the right place. All the code of this website is public on Github.
- Clone the repo Add your post in ./kubetips/content/posts or modify an existing one.</description>
+If you want to tell your &amp;ldquo;how to&amp;rdquo;, or you think that an article is incomplete or you can do it better, you are in the right place. Click on Github to start.
+ Clone the repo Add your post in ./kubetips/content/posts or modify an existing one.  Posts are written in MarkDown, use this as header in case you are writing a new one: --- title: &amp;quot;Title&amp;quot; date: {{ .</description>
     </item>
     
     
