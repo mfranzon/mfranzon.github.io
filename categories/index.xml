@@ -5,7 +5,16 @@
     <link>https://kubetips.cloud/categories/</link>
     <description>Recent content in Categories on KubeTips</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 04 May 2022 20:24:02 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 19 May 2022 23:40:55 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Resources</title>
+      <link>https://kubetips.cloud/categories/resources/</link>
+      <pubDate>Thu, 19 May 2022 23:40:55 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/categories/resources/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>How to</title>
       <link>https://kubetips.cloud/categories/how-to/</link>
