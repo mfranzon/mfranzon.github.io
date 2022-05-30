@@ -16,9 +16,7 @@
       <pubDate>Thu, 26 May 2022 14:54:19 +0200</pubDate>
       
       <guid>https://kubetips.cloud/posts/isolatedns/</guid>
-      <description>Pods are, by default, able to connect each other. No matter if they run in the same or different namespaces, no NAT will be performed between pods. Check this article to have more info on pods network.
-To change this behaviour it is necessary introduce a custom NetworkPolicy. Just to recall the definition:
- NetworkPolicy is a resource which gives you the possibility to specify how a pod communicates with other pods/services in the network.</description>
+      <description>NetworkPolicy is a resource which gives you the possibility to specify how a pod communicates with other pods/services in the network.</description>
     </item>
     
   </channel>
