@@ -9,7 +9,17 @@
       <link>https://kubetips.cloud/twitter-shared-link.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 26 May 2022 14:54:19 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 01 Jun 2022 23:26:58 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Using a git repository as volume for a Pod</title>
+      <link>https://kubetips.cloud/posts/gitsidecar/</link>
+      <pubDate>Wed, 01 Jun 2022 23:26:58 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/gitsidecar/</guid>
+      <description>Volumes in Kubernetes could be initialised with several types. One of this is the gitRepo, which is basically an emptyDir volume type, that gets populated by the content of a git repository.
+One of the most common usage of this is to store static HTML files. Different softwares like Hugo or Jekyll gives you the possibility to get HTML files, starting from a Markdown&amp;rsquo;s one. In this case, an always up-to-date shared volumes could be really useful, It keeps your pod sync with the most recent version of yours static files.</description>
+    </item>
+    
     <item>
       <title>NetworkPolicy : Enabling network isolation between Pods in the same Namespace</title>
       <link>https://kubetips.cloud/posts/isolatedns/</link>
