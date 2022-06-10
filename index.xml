@@ -9,7 +9,18 @@
       <link>https://kubetips.cloud/twitter-shared-link.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 01 Jun 2022 23:26:58 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 09 Jun 2022 23:41:44 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>PersistenVolume: choose the correct policy to avoid bad surprises. Don&#39;t lose your data!</title>
+      <link>https://kubetips.cloud/posts/pvpolicies/</link>
+      <pubDate>Thu, 09 Jun 2022 23:41:44 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/pvpolicies/</guid>
+      <description>PersistenVolume (PV) is a Kubernetes resource, that gives you the possibility to obtain storage from the infrastructure without worry about the storage technologies.
+Create a PV Creating a PV follow the same rules as for the other Kubernetes resources. Let&amp;rsquo;s have a look on an example file:
+apiVersion: v1 kind: PersistentVolume metadata: name: $name-pv spec: capacity: storage: 1Gi accessModes: - ReadWriteOnce - ReadOnlyMany persistentVolumeReclaimPolicy: {Delete, Retain, Recycle} Three main keywords pop up in this .</description>
+    </item>
+    
     <item>
       <title>Using a git repository as volume for a Pod</title>
       <link>https://kubetips.cloud/posts/gitsidecar/</link>
@@ -66,7 +77,7 @@ Minikube Minikube is probably the most used choice. It can runs in all the major
       <pubDate>Fri, 02 Aug 2019 11:04:49 +0800</pubDate>
       
       <guid>https://kubetips.cloud/cookies/</guid>
-      <description>INTRODUCTION This blog may use cookies, web beacons, tracking pixels, and other tracking technologies when you visit our website [Name of Website.com], including any other media form, media channel, mobile website, or mobile application related or connected thereto (collectively, the “Site”) to help customize the Site and improve your experience.
+      <description>INTRODUCTION This blog may use cookies, web beacons, tracking pixels, and other tracking technologies when you visit our website [Name of Website.com], including any other media form, media channel, mobile website, or mobile application related or connected thereto (collectively, the “Site”) to help customise the Site and improve your experience.
 We reserve the right to make changes to this Cookie Policy at any time and for any reason. We will alert you about any changes by updating the “Last Updated” date of this Cookie Policy.</description>
     </item>
     

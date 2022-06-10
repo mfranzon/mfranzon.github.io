@@ -9,7 +9,18 @@
       <link>https://kubetips.cloud/twitter-shared-link.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 01 Jun 2022 23:26:58 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 09 Jun 2022 23:41:44 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>PersistenVolume: choose the correct policy to avoid bad surprises. Don&#39;t lose your data!</title>
+      <link>https://kubetips.cloud/posts/pvpolicies/</link>
+      <pubDate>Thu, 09 Jun 2022 23:41:44 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/pvpolicies/</guid>
+      <description>PersistenVolume (PV) is a Kubernetes resource, that gives you the possibility to obtain storage from the infrastructure without worry about the storage technologies.
+Create a PV Creating a PV follow the same rules as for the other Kubernetes resources. Let&amp;rsquo;s have a look on an example file:
+apiVersion: v1 kind: PersistentVolume metadata: name: $name-pv spec: capacity: storage: 1Gi accessModes: - ReadWriteOnce - ReadOnlyMany persistentVolumeReclaimPolicy: {Delete, Retain, Recycle} Three main keywords pop up in this .</description>
+    </item>
+    
     <item>
       <title>Using a git repository as volume for a Pod</title>
       <link>https://kubetips.cloud/posts/gitsidecar/</link>
