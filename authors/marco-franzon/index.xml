@@ -25,8 +25,7 @@
       <pubDate>Wed, 01 Jun 2022 23:26:58 +0200</pubDate>
       
       <guid>https://kubetips.cloud/posts/gitsidecar/</guid>
-      <description>Volumes in Kubernetes could be initialised with several types. One of this is the gitRepo, which is basically an emptyDir volume type, that gets populated by the content of a git repository.
-One of the most common usage of this is to store static HTML files. Different softwares like Hugo or Jekyll gives you the possibility to get HTML files, starting from a Markdown&amp;rsquo;s one. In this case, an always up-to-date shared volumes could be really useful, It keeps your pod sync with the most recent version of yours static files.</description>
+      <description>Volumes in Kubernetes could be initialised with several types.</description>
     </item>
     
     <item>
@@ -35,9 +34,7 @@ One of the most common usage of this is to store static HTML files. Different so
       <pubDate>Thu, 26 May 2022 14:54:19 +0200</pubDate>
       
       <guid>https://kubetips.cloud/posts/isolatedns/</guid>
-      <description>Pods are, by default, able to connect each other. No matter if they run in the same or different namespaces, no NAT will be performed between pods. Check this article to have more info on pods network.
-To change this behaviour it is necessary introduce a custom NetworkPolicy. Just to recall the definition:
- NetworkPolicy is a resource which gives you the possibility to specify how a pod communicates with other pods/services in the network.</description>
+      <description>Pods are, by default, able to connect each other</description>
     </item>
     
     <item>
@@ -55,8 +52,7 @@ To change this behaviour it is necessary introduce a custom NetworkPolicy. Just 
       <pubDate>Wed, 04 May 2022 20:24:02 +0200</pubDate>
       
       <guid>https://kubetips.cloud/posts/k8scloud/</guid>
-      <description>One of the most used service, to have your Kubernetes cluster deploy in cloud, is the Elastic Kubernetes Service provided by AWS.
-EKS, defined as containers-as-a-service (CaaS), (more details here regarding pricing and general overview) is a managed service that helps to run Kubernetes on AWS. Practically speaking, you do not need to manage the installation of Kubernetes on EC2 instances but you can leave all the configuration stuff to the services provided by EKS.</description>
+      <description>One of the most used service, to have your Kubernetes cluster deploy in cloud, is the Elastic Kubernetes Service provided by AWS.</description>
     </item>
     
     <item>
