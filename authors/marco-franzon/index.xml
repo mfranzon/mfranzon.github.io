@@ -9,7 +9,16 @@
       <link>https://kubetips.cloud/twitter-shared-link.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 09 Jun 2022 23:41:44 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 17 Jun 2022 01:09:09 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kubernetes actions to modify deployed resources. Sneaky changes to avoid your boss&#39; anger! </title>
+      <link>https://kubetips.cloud/posts/kubemodifyres/</link>
+      <pubDate>Fri, 17 Jun 2022 01:09:09 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/kubemodifyres/</guid>
+      <description>There are several ways to modify deployed resources in Kubernetes. Here a brief summary on the different methods you can use and some suggestions on why choose one or the other in different situations.</description>
+    </item>
+    
     <item>
       <title>PersistenVolume: choose the correct policy to avoid bad surprises. Don&#39;t lose your data!</title>
       <link>https://kubetips.cloud/posts/pvpolicies/</link>
