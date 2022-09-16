@@ -9,7 +9,16 @@
       <link>https://kubetips.cloud/twitter-shared-link.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Fri, 17 Jun 2022 01:09:09 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 20 Jul 2022 23:40:55 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/authors/marco-franzon/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Create your Docker image in one minute. Just do it!</title>
+      <link>https://kubetips.cloud/posts/dockerimage/</link>
+      <pubDate>Wed, 20 Jul 2022 23:40:55 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/dockerimage/</guid>
+      <description>Docker is the most used engine to run our containers. Very often it is the backend of a Kubernetes deployment so, it is necessary know it very well to administer properly a k8s cluster</description>
+    </item>
+    
     <item>
       <title>Kubernetes actions to modify deployed resources. Sneaky changes to avoid your boss&#39; anger! </title>
       <link>https://kubetips.cloud/posts/kubemodifyres/</link>
@@ -44,15 +53,6 @@
       
       <guid>https://kubetips.cloud/posts/isolatedns/</guid>
       <description>Pods are, by default, able to connect each other</description>
-    </item>
-    
-    <item>
-      <title>Create your Docker image in one minute. Just do it!</title>
-      <link>https://kubetips.cloud/posts/dockerimage/</link>
-      <pubDate>Thu, 19 May 2022 23:40:55 +0200</pubDate>
-      
-      <guid>https://kubetips.cloud/posts/dockerimage/</guid>
-      <description>Docker is the most used engine to run our containers. Very often it is the backend of a Kubernetes deployment so, it is necessary know it very well to administer properly a k8s cluster</description>
     </item>
     
     <item>
