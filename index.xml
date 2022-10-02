@@ -9,7 +9,16 @@
       <link>https://kubetips.cloud/twitter-shared-link.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 20 Jul 2022 23:40:55 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 20 Sep 2022 23:40:55 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Docker and GPUs: quick start to deploy your next project, without pain configurations</title>
+      <link>https://kubetips.cloud/posts/dockergpu/</link>
+      <pubDate>Tue, 20 Sep 2022 23:40:55 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/dockergpu/</guid>
+      <description>Docker and GPU are your final combination to scale your projects. Let&amp;#39;s see how to configure the environment and the the requirements to be ready in few steps.</description>
+    </item>
+    
     <item>
       <title>Create your Docker image in one minute. Just do it!</title>
       <link>https://kubetips.cloud/posts/dockerimage/</link>
