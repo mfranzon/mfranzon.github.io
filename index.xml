@@ -9,7 +9,16 @@
       <link>https://kubetips.cloud/twitter-shared-link.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 20 Sep 2022 23:40:55 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 02 Feb 2023 23:40:55 +0200</lastBuildDate><atom:link href="https://kubetips.cloud/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Find processes in docker containers: quick tip to avoid bad surprises </title>
+      <link>https://kubetips.cloud/posts/dockertoprocess/</link>
+      <pubDate>Thu, 02 Feb 2023 23:40:55 +0200</pubDate>
+      
+      <guid>https://kubetips.cloud/posts/dockertoprocess/</guid>
+      <description>Containerization is cool, but sometimes it can hide unwanted guests. Keep track of all the running processes, gives you the certainty that everything is running correctly </description>
+    </item>
+    
     <item>
       <title>Docker and GPUs: quick start to deploy your next project, without pain configurations</title>
       <link>https://kubetips.cloud/posts/dockergpu/</link>
