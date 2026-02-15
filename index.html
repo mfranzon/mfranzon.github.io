@@ -79,24 +79,6 @@
                 will-change: transform;
             }
 
-            #scroll-svg {
-                position: fixed;
-                right: 2vw;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 120px;
-                height: 70vh;
-                z-index: 10;
-                pointer-events: none;
-                opacity: 0.5;
-                transition: opacity 0.3s;
-            }
-
-            #scroll-svg .draw-path {
-                fill: none;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
 
             .hero h1 {
                 font-size: 56px;
@@ -428,9 +410,6 @@
                 .post .date {
                     margin-left: 0;
                 }
-                #scroll-svg {
-                    display: none;
-                }
                 .footer {
                     flex-direction: column;
                     gap: 8px;
@@ -440,54 +419,6 @@
         </style>
     </head>
     <body>
-        <!-- Scroll-drawing SVG: neural network / circuit illustration -->
-        <svg id="scroll-svg" viewBox="0 0 120 600" xmlns="http://www.w3.org/2000/svg">
-            <!-- Vertical backbone -->
-            <path class="draw-path" d="M60 10 L60 590" stroke="#7aa2ff" stroke-width="1.5" data-section="0" />
-
-            <!-- Node 1: Hero — eye/sensor icon -->
-            <circle class="draw-path" cx="60" cy="50" r="14" stroke="#7aa2ff" stroke-width="1.5" data-section="0" />
-            <circle class="draw-path" cx="60" cy="50" r="5" stroke="#06b6d4" stroke-width="1.5" data-section="0" />
-
-            <!-- Branch 1: About — brain branches -->
-            <path class="draw-path" d="M60 90 Q30 105 20 130" stroke="#06b6d4" stroke-width="1" data-section="1" />
-            <path class="draw-path" d="M60 90 Q90 105 100 130" stroke="#06b6d4" stroke-width="1" data-section="1" />
-            <circle class="draw-path" cx="20" cy="130" r="6" stroke="#06b6d4" stroke-width="1" data-section="1" />
-            <circle class="draw-path" cx="100" cy="130" r="6" stroke="#06b6d4" stroke-width="1" data-section="1" />
-
-            <!-- Node 2: Experience — stacked layers -->
-            <rect class="draw-path" x="38" y="165" width="44" height="10" rx="3" stroke="#7aa2ff" stroke-width="1" data-section="2" />
-            <rect class="draw-path" x="42" y="180" width="36" height="10" rx="3" stroke="#7aa2ff" stroke-width="1" data-section="2" />
-            <rect class="draw-path" x="46" y="195" width="28" height="10" rx="3" stroke="#7aa2ff" stroke-width="1" data-section="2" />
-
-            <!-- Branch 2: Projects — network graph -->
-            <path class="draw-path" d="M60 230 L25 260" stroke="#06b6d4" stroke-width="1" data-section="3" />
-            <path class="draw-path" d="M60 230 L60 270" stroke="#06b6d4" stroke-width="1" data-section="3" />
-            <path class="draw-path" d="M60 230 L95 260" stroke="#06b6d4" stroke-width="1" data-section="3" />
-            <circle class="draw-path" cx="25" cy="260" r="8" stroke="#3b82f6" stroke-width="1.2" data-section="3" />
-            <circle class="draw-path" cx="60" cy="270" r="8" stroke="#3b82f6" stroke-width="1.2" data-section="3" />
-            <circle class="draw-path" cx="95" cy="260" r="8" stroke="#3b82f6" stroke-width="1.2" data-section="3" />
-            <!-- inter-node connections -->
-            <path class="draw-path" d="M25 260 L60 270 L95 260" stroke="#3b82f6" stroke-width="0.6" data-section="3" />
-
-            <!-- Node 3: Talks — signal waves -->
-            <path class="draw-path" d="M40 330 Q50 315 60 330 Q70 345 80 330" stroke="#7aa2ff" stroke-width="1.2" data-section="4" />
-            <path class="draw-path" d="M35 340 Q50 320 60 340 Q70 360 85 340" stroke="#7aa2ff" stroke-width="0.8" data-section="4" />
-
-            <!-- Node 4: Writing — terminal lines -->
-            <line class="draw-path" x1="30" y1="400" x2="90" y2="400" stroke="#06b6d4" stroke-width="1" data-section="5" />
-            <line class="draw-path" x1="30" y1="412" x2="75" y2="412" stroke="#06b6d4" stroke-width="1" data-section="5" />
-            <line class="draw-path" x1="30" y1="424" x2="82" y2="424" stroke="#06b6d4" stroke-width="1" data-section="5" />
-            <rect class="draw-path" x="25" y="392" width="70" height="40" rx="4" stroke="#06b6d4" stroke-width="0.8" data-section="5" />
-
-            <!-- Node 5: Principles — diamond / core -->
-            <path class="draw-path" d="M60 480 L80 510 L60 540 L40 510 Z" stroke="#7aa2ff" stroke-width="1.5" data-section="6" />
-            <circle class="draw-path" cx="60" cy="510" r="8" stroke="#06b6d4" stroke-width="1" data-section="6" />
-
-            <!-- Final pulse dot -->
-            <circle class="draw-path" cx="60" cy="580" r="4" stroke="#7aa2ff" stroke-width="1.5" data-section="6" />
-        </svg>
-
         <div class="container">
             <div class="hero">
                 <canvas id="hero-canvas"></canvas>
@@ -937,72 +868,6 @@
                             });
                         });
                     });
-                // === SCROLL-DRAW SVG ===
-                var drawPaths = document.querySelectorAll("#scroll-svg .draw-path");
-                var sectionAnchors = document.querySelectorAll(
-                    ".hero, [class='']:not(*), h2",
-                );
-                // Collect actual page sections by h2 headings
-                var h2s = document.querySelectorAll("h2");
-                var totalSections = h2s.length + 1; // +1 for hero
-
-                // Init: hide all paths via stroke-dasharray
-                drawPaths.forEach(function (path) {
-                    var len;
-                    if (path.getTotalLength) {
-                        len = path.getTotalLength();
-                    } else {
-                        // circles/rects/lines — estimate perimeter
-                        var tag = path.tagName.toLowerCase();
-                        if (tag === "circle") {
-                            len = 2 * Math.PI * parseFloat(path.getAttribute("r"));
-                        } else if (tag === "rect") {
-                            var rw = parseFloat(path.getAttribute("width"));
-                            var rh = parseFloat(path.getAttribute("height"));
-                            len = 2 * (rw + rh);
-                        } else if (tag === "line") {
-                            var x1 = parseFloat(path.getAttribute("x1"));
-                            var y1 = parseFloat(path.getAttribute("y1"));
-                            var x2 = parseFloat(path.getAttribute("x2"));
-                            var y2 = parseFloat(path.getAttribute("y2"));
-                            len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-                        } else {
-                            len = 200;
-                        }
-                    }
-                    path.style.strokeDasharray = len;
-                    path.style.strokeDashoffset = len;
-                    path._totalLen = len;
-                });
-
-                function updateScrollSVG() {
-                    var scrollTop = window.pageYOffset;
-                    var docHeight =
-                        document.documentElement.scrollHeight - window.innerHeight;
-                    var scrollFraction = docHeight > 0 ? scrollTop / docHeight : 0;
-
-                    // Map scroll to section index (0 to totalSections)
-                    var currentProgress = scrollFraction * totalSections;
-
-                    drawPaths.forEach(function (path) {
-                        var section = parseInt(path.getAttribute("data-section"));
-                        // Each section reveals from 0 to 1 within its scroll range
-                        var pathProgress = Math.max(
-                            0,
-                            Math.min(1, currentProgress - section),
-                        );
-                        var offset = path._totalLen * (1 - pathProgress);
-                        path.style.strokeDashoffset = offset;
-                    });
-
-                    // Fade SVG in after scrolling a bit
-                    var svg = document.getElementById("scroll-svg");
-                    svg.style.opacity = scrollFraction > 0.02 ? 0.5 : 0.2;
-                }
-
-                window.addEventListener("scroll", updateScrollSVG);
-                updateScrollSVG();
-
                 // === PARALLAX DEPTH ===
                 var sections = document.querySelectorAll(
                     ".hero, h2, .bio, .card, .projects-grid, .principles, .footer",
