@@ -204,6 +204,9 @@
                 transition:
                     border-color 0.3s,
                     transform 0.2s;
+                text-decoration: none;
+                display: block;
+                color: inherit;
             }
 
             .project-card:hover {
@@ -229,6 +232,18 @@
                 display: flex;
                 gap: 8px;
                 flex-wrap: wrap;
+            }
+
+            .project-link {
+                display: inline-block;
+                margin-top: 16px;
+                font-size: 13px;
+                color: #555;
+                transition: color 0.3s;
+            }
+
+            .project-card:hover .project-link {
+                color: #e8e8e8;
             }
 
             .tag {
@@ -462,54 +477,45 @@
 
             <h2>Projects</h2>
             <div class="projects-grid">
-                <div class="project-card">
-                    <h3>Pothole Detection</h3>
+                <a href="https://github.com/computer-vision-with-marco" target="_blank" class="project-card">
+                    <h3>Computer Vision with Marco</h3>
                     <p>
-                        Real-time road damage detection using YOLO on low-cost
-                        edge devices.
+                        Open-source org with YOLO training templates, a matrix-vision
+                        app, and real-time detection demos.
                     </p>
                     <div class="tech">
                         <span class="tag">YOLO</span>
-                        <span class="tag">Edge AI</span>
-                        <span class="tag">Raspberry Pi</span>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <h3>Edge AI Experiments</h3>
-                    <p>
-                        Deploying ML models on microcontrollers and single-board
-                        computers.
-                    </p>
-                    <div class="tech">
-                        <span class="tag">ESP32</span>
-                        <span class="tag">TFLite</span>
-                        <span class="tag">ONNX</span>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <h3>Reproducible ML</h3>
-                    <p>
-                        Minimal, shareable pipelines that anyone can run and
-                        verify.
-                    </p>
-                    <div class="tech">
-                        <span class="tag">Docker</span>
-                        <span class="tag">DVC</span>
                         <span class="tag">Python</span>
+                        <span class="tag">TypeScript</span>
                     </div>
-                </div>
-                <div class="project-card">
-                    <h3>Digital Twin Platform</h3>
+                    <span class="project-link">View on GitHub &rarr;</span>
+                </a>
+                <a href="https://github.com/2listic/agentic-viz" target="_blank" class="project-card">
+                    <h3>Agentic Viz</h3>
                     <p>
-                        Simulation engine for physical environments with
-                        real-time sensor fusion.
+                        Visualizer for agentic markdown planner — turn agent
+                        plans into interactive diagrams.
                     </p>
                     <div class="tech">
-                        <span class="tag">Simulation</span>
-                        <span class="tag">3D</span>
-                        <span class="tag">Streaming</span>
+                        <span class="tag">JavaScript</span>
+                        <span class="tag">Agents</span>
+                        <span class="tag">Visualization</span>
                     </div>
-                </div>
+                    <span class="project-link">View on GitHub &rarr;</span>
+                </a>
+                <a href="https://github.com/2listic/datacenter-planner" target="_blank" class="project-card">
+                    <h3>Datacenter Planner</h3>
+                    <p>
+                        Create your data center from a 2D plan — place racks and
+                        cooling systems in a detailed 3D scene.
+                    </p>
+                    <div class="tech">
+                        <span class="tag">Three.js</span>
+                        <span class="tag">3D</span>
+                        <span class="tag">JavaScript</span>
+                    </div>
+                    <span class="project-link">View on GitHub &rarr;</span>
+                </a>
             </div>
 
             <h2>Talks & Community</h2>
@@ -539,20 +545,28 @@
             <h2>Writing</h2>
             <div class="card">
                 <div class="post">
-                    <a href="#">Don't buy GPUs, buy microcontrollers</a>
-                    <span class="date">2025</span>
+                    <a href="https://developertips.substack.com/p/cli-is-all-you-need" target="_blank">CLI Is All You Need</a>
+                    <span class="date">Feb 2026</span>
                 </div>
                 <div class="post">
-                    <a href="#">Most AI projects fail in deployment</a>
-                    <span class="date">2025</span>
+                    <a href="https://developertips.substack.com/p/i-see-opencode-more-than-my-family" target="_blank">I see OpenCode more than my family</a>
+                    <span class="date">Jan 2026</span>
                 </div>
                 <div class="post">
-                    <a href="#">Make ML boring</a>
-                    <span class="date">2024</span>
+                    <a href="https://developertips.substack.com/p/computer-vision-for-edge-devices" target="_blank">Computer Vision for Edge Devices: Seeing Like a Machine</a>
+                    <span class="date">Jan 2026</span>
                 </div>
                 <div class="post">
-                    <a href="#">Why digital twins need edge inference</a>
-                    <span class="date">2024</span>
+                    <a href="https://developertips.substack.com/p/how-to-create-and-manage-a-service" target="_blank">How to Create and Manage a Service in an Alpine Linux Container</a>
+                    <span class="date">Sep 2024</span>
+                </div>
+                <div class="post">
+                    <a href="https://developertips.substack.com/p/unlocking-the-power-of-gpus-in-docker" target="_blank">Unlocking the Power of GPUs in Docker</a>
+                    <span class="date">Oct 2023</span>
+                </div>
+                <div class="post">
+                    <a href="https://developertips.substack.com/p/the-ultimate-vs-code-setup-for-python" target="_blank">The Ultimate VS Code Setup for Python Developers</a>
+                    <span class="date">Oct 2023</span>
                 </div>
             </div>
 
