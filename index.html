@@ -56,18 +56,85 @@
                 overflow: hidden;
             }
 
-            #hero-canvas {
+            .letter-grid {
                 position: absolute;
                 top: 0;
                 left: 0;
                 width: 100%;
                 height: 100%;
                 z-index: 0;
+                display: grid;
+                grid-template-columns: repeat(var(--grid-cols, 16), 1fr);
+                gap: 0;
+                padding: 8px;
+                overflow: hidden;
+            }
+
+            .grid-cell {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: 'Inter', monospace;
+                font-size: 14px;
+                font-weight: 500;
+                color: #2a2a2a;
+                aspect-ratio: 1;
+                border-radius: 4px;
+                transition: background 0.2s;
+                user-select: none;
+                position: relative;
+            }
+
+            .grid-cell.scanned {
+                color: #3a3a3a;
+                background: rgba(122, 162, 255, 0.03);
+            }
+
+            .grid-cell.picked {
+                color: #7aa2ff;
+                background: rgba(122, 162, 255, 0.12);
+                border: 1px solid rgba(122, 162, 255, 0.3);
+                text-shadow: 0 0 8px rgba(122, 162, 255, 0.5);
+                font-weight: 700;
+            }
+
+            .robot-arm {
+                position: absolute;
+                z-index: 1;
+                pointer-events: none;
+                opacity: 0;
+            }
+
+            .robot-arm .beam {
+                width: 2px;
+                height: 40px;
+                background: linear-gradient(to bottom, transparent, #ef4444);
+                margin: 0 auto;
+            }
+
+            .robot-arm .claw {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #ef4444;
+                border-top: none;
+                border-radius: 0 0 6px 6px;
+                margin: 0 auto;
+                position: relative;
+            }
+
+            .robot-arm .claw::before {
+                content: '';
+                position: absolute;
+                top: -2px;
+                left: -4px;
+                right: -4px;
+                height: 2px;
+                background: #ef4444;
             }
 
             .hero-content {
                 position: relative;
-                z-index: 1;
+                z-index: 2;
             }
 
             .anim-hidden {
@@ -461,7 +528,11 @@
         </div>
         <div class="container">
             <div class="hero">
-                <canvas id="hero-canvas"></canvas>
+                <div class="letter-grid" id="letter-grid"></div>
+                <div class="robot-arm" id="robot-arm">
+                    <div class="beam"></div>
+                    <div class="claw"></div>
+                </div>
                 <div class="hero-content">
                     <h1 class="hero-title">Marco Franzon</h1>
                     <p class="tagline">
@@ -666,146 +737,182 @@
         <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
         <script>
             (function () {
-                // === HERO CANVAS — CV-themed particle grid ===
-                const canvas = document.getElementById("hero-canvas");
-                const ctx = canvas.getContext("2d");
-                let particles = [];
-                const GRID_SPACING = 40;
-                const CONNECTION_DIST = 80;
-                let w, h;
+                // === RUZZLE LETTER GRID + ROBOT PICKER ===
+                var NAME = "MARCOFRANZON";
+                var ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                var COLS = 16;
+                var ROWS = 8;
+                var grid = document.getElementById("letter-grid");
+                var robotArm = document.getElementById("robot-arm");
+                grid.style.setProperty("--grid-cols", COLS);
 
-                function initCanvas() {
-                    const hero = canvas.parentElement;
-                    w = canvas.width = hero.offsetWidth;
-                    h = canvas.height = hero.offsetHeight;
-                    particles = [];
-                    for (let x = GRID_SPACING; x < w; x += GRID_SPACING) {
-                        for (let y = GRID_SPACING; y < h; y += GRID_SPACING) {
-                            particles.push({
-                                ox: x,
-                                oy: y,
-                                x: x,
-                                y: y,
-                                r: 1.5,
-                                phase: Math.random() * Math.PI * 2,
-                                speed: 0.3 + Math.random() * 0.7,
-                            });
-                        }
+                // Build grid cells with random letters
+                var totalCells = COLS * ROWS;
+                var cells = [];
+                var namePositions = []; // indices where name letters are placed
+
+                // Place name letters at random non-adjacent positions
+                var nameIndices = [];
+                var used = new Set();
+                for (var n = 0; n < NAME.length; n++) {
+                    var idx;
+                    var attempts = 0;
+                    do {
+                        idx = Math.floor(Math.random() * totalCells);
+                        attempts++;
+                    } while (used.has(idx) && attempts < 200);
+                    used.add(idx);
+                    nameIndices.push(idx);
+                }
+
+                // Create all cells
+                var cellLetters = [];
+                for (var i = 0; i < totalCells; i++) {
+                    var nameIdx = nameIndices.indexOf(i);
+                    if (nameIdx !== -1) {
+                        cellLetters.push(NAME[nameIdx]);
+                    } else {
+                        cellLetters.push(ALPHABET[Math.floor(Math.random() * 26)]);
                     }
                 }
 
-                let tick = 0;
-                function drawCanvas() {
-                    ctx.clearRect(0, 0, w, h);
-                    tick += 0.01;
-
-                    for (let i = 0; i < particles.length; i++) {
-                        const p = particles[i];
-                        p.x = p.ox + Math.sin(tick * p.speed + p.phase) * 6;
-                        p.y =
-                            p.oy + Math.cos(tick * p.speed + p.phase * 0.7) * 6;
-                    }
-
-                    // connections
-                    ctx.lineWidth = 0.4;
-                    for (let i = 0; i < particles.length; i++) {
-                        for (let j = i + 1; j < particles.length; j++) {
-                            const dx = particles[i].x - particles[j].x;
-                            const dy = particles[i].y - particles[j].y;
-                            const dist = Math.sqrt(dx * dx + dy * dy);
-                            if (dist < CONNECTION_DIST) {
-                                const alpha =
-                                    (1 - dist / CONNECTION_DIST) * 0.15;
-                                ctx.strokeStyle =
-                                    "rgba(100,180,255," + alpha + ")";
-                                ctx.beginPath();
-                                ctx.moveTo(particles[i].x, particles[i].y);
-                                ctx.lineTo(particles[j].x, particles[j].y);
-                                ctx.stroke();
-                            }
-                        }
-                    }
-
-                    // dots
-                    for (let i = 0; i < particles.length; i++) {
-                        const p = particles[i];
-                        const pulse = 0.5 + 0.5 * Math.sin(tick * 2 + p.phase);
-                        const g = Math.floor(150 + pulse * 50);
-                        const b = Math.floor(200 + pulse * 55);
-                        ctx.fillStyle =
-                            "rgba(" +
-                            (60 + pulse * 40) +
-                            "," +
-                            g +
-                            "," +
-                            b +
-                            "," +
-                            (0.3 + pulse * 0.4) +
-                            ")";
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.r + pulse * 0.8, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-
-                    requestAnimationFrame(drawCanvas);
+                // Render grid
+                for (var i = 0; i < totalCells; i++) {
+                    var cell = document.createElement("div");
+                    cell.className = "grid-cell";
+                    cell.textContent = cellLetters[i];
+                    cell.dataset.index = i;
+                    grid.appendChild(cell);
+                    cells.push(cell);
                 }
 
-                initCanvas();
-                drawCanvas();
-                window.addEventListener("resize", initCanvas);
-
-                // === HERO ENTRANCE — letter-by-letter name reveal ===
-                const heroTitle = document.querySelector(".hero-title");
-                const titleText = heroTitle.textContent;
-                heroTitle.innerHTML = titleText
-                    .split("")
-                    .map(function (ch) {
-                        return ch === " "
-                            ? " "
-                            : '<span class="letter" style="display:inline-block;opacity:0">' +
-                                  ch +
-                                  "</span>";
-                    })
-                    .join("");
-
-                const tagline = document.querySelector(".tagline");
-                const heroLinks = document.querySelectorAll(".hero .links a");
+                // Hide hero content initially
+                var heroTitle = document.querySelector(".hero-title");
+                var tagline = document.querySelector(".tagline");
+                var heroLinks = document.querySelectorAll(".hero .links a");
+                heroTitle.style.opacity = "0";
                 tagline.style.opacity = "0";
-                heroLinks.forEach(function (a) {
-                    a.style.opacity = "0";
-                });
+                heroLinks.forEach(function (a) { a.style.opacity = "0"; });
 
-                anime
-                    .timeline()
-                    .add({
-                        targets: ".hero-title .letter",
+                // Robot picker animation sequence
+                var scanDelay = 400;
+
+                function getCellCenter(cell) {
+                    var rect = cell.getBoundingClientRect();
+                    var heroRect = grid.closest(".hero").getBoundingClientRect();
+                    return {
+                        x: rect.left - heroRect.left + rect.width / 2,
+                        y: rect.top - heroRect.top + rect.height / 2
+                    };
+                }
+
+                // Scanning phase: sweep random cells, then pick name letters
+                function startRobotSequence() {
+                    robotArm.style.opacity = "1";
+
+                    // Phase 1: Quick random scanning (visual sweep)
+                    var scanCells = [];
+                    for (var s = 0; s < 12; s++) {
+                        var ri;
+                        do { ri = Math.floor(Math.random() * totalCells); }
+                        while (nameIndices.includes(ri));
+                        scanCells.push(ri);
+                    }
+
+                    var timeline = anime.timeline({ easing: "easeInOutQuad" });
+
+                    // Scan random cells quickly
+                    scanCells.forEach(function (ci, i) {
+                        timeline.add({
+                            targets: robotArm,
+                            left: function () { return getCellCenter(cells[ci]).x - 10 + "px"; },
+                            top: function () { return getCellCenter(cells[ci]).y - 62 + "px"; },
+                            duration: 150,
+                            complete: function () {
+                                cells[ci].classList.add("scanned");
+                            }
+                        }, i * 180);
+                    });
+
+                    // Phase 2: Pick each name letter
+                    var pickStart = scanCells.length * 180 + 300;
+                    nameIndices.forEach(function (ci, i) {
+                        var delay = pickStart + i * 400;
+
+                        // Move arm to letter
+                        timeline.add({
+                            targets: robotArm,
+                            left: function () { return getCellCenter(cells[ci]).x - 10 + "px"; },
+                            top: function () { return getCellCenter(cells[ci]).y - 62 + "px"; },
+                            duration: 250,
+                            easing: "easeInOutCubic"
+                        }, delay);
+
+                        // "Grab" — claw closes, cell highlights
+                        timeline.add({
+                            targets: cells[ci],
+                            duration: 1,
+                            complete: function () {
+                                cells[ci].classList.add("picked");
+                                // Pulse the claw
+                                anime({
+                                    targets: "#robot-arm .claw",
+                                    scale: [1, 0.8, 1],
+                                    duration: 200,
+                                    easing: "easeInOutQuad"
+                                });
+                            }
+                        }, delay + 250);
+                    });
+
+                    // Phase 3: After all letters picked, reveal the hero title
+                    var revealTime = pickStart + nameIndices.length * 400 + 300;
+
+                    timeline.add({
+                        targets: robotArm,
+                        opacity: [1, 0],
+                        translateY: [0, -30],
+                        duration: 400,
+                        easing: "easeInCubic"
+                    }, revealTime);
+
+                    // Fade grid subtly
+                    timeline.add({
+                        targets: ".grid-cell:not(.picked)",
+                        opacity: [1, 0.3],
+                        duration: 600,
+                        easing: "easeOutExpo"
+                    }, revealTime);
+
+                    // Reveal hero text
+                    timeline.add({
+                        targets: heroTitle,
                         opacity: [0, 1],
-                        translateY: [40, 0],
-                        easing: "easeOutExpo",
+                        translateY: [20, 0],
                         duration: 800,
-                        delay: anime.stagger(40, { start: 200 }),
-                    })
-                    .add(
-                        {
-                            targets: tagline,
-                            opacity: [0, 1],
-                            translateY: [20, 0],
-                            easing: "easeOutExpo",
-                            duration: 800,
-                        },
-                        "-=400",
-                    )
-                    .add(
-                        {
-                            targets: Array.from(heroLinks),
-                            opacity: [0, 1],
-                            translateY: [15, 0],
-                            easing: "easeOutExpo",
-                            duration: 600,
-                            delay: anime.stagger(80),
-                        },
-                        "-=400",
-                    );
+                        easing: "easeOutExpo"
+                    }, revealTime + 200);
+
+                    timeline.add({
+                        targets: tagline,
+                        opacity: [0, 1],
+                        translateY: [20, 0],
+                        duration: 800,
+                        easing: "easeOutExpo"
+                    }, revealTime + 500);
+
+                    timeline.add({
+                        targets: Array.from(heroLinks),
+                        opacity: [0, 1],
+                        translateY: [15, 0],
+                        duration: 600,
+                        easing: "easeOutExpo",
+                        delay: anime.stagger(80)
+                    }, revealTime + 700);
+                }
+
+                // Kick off after a short initial delay
+                setTimeout(startRobotSequence, 500);
 
                 // === SCROLL-TRIGGERED SECTION REVEALS ===
                 var animEls = document.querySelectorAll(
