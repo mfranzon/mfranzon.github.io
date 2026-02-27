@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure by Default: Docker Sandboxes & Docker Compose Meets AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text x='4' y='26' font-size='28' font-weight='bold' fill='%2358a6ff'>X</text></svg>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+<style>
+  :root {
+    --r-background-color: #0d1117;
+    --r-main-color: #e6edf3;
+    --r-heading-color: #58a6ff;
+    --r-link-color: #58a6ff;
+  }
+  .reveal { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  .reveal h1, .reveal h2, .reveal h3 { text-transform: none; font-weight: 700; }
+  .reveal h1 { font-size: 2em; }
+  .reveal h2 { font-size: 1.5em; color: var(--r-heading-color); }
+  .reveal h3 { font-size: 1.2em; color: #7ee787; }
+  .reveal pre { box-shadow: none; font-size: 0.75em; }
+  .reveal pre code { padding: 1em; border-radius: 8px; max-height: 500px; }
+  .reveal .small { font-size: 0.6em; color: #8b949e; }
+  .reveal .highlight { color: #ffa657; font-weight: bold; }
+  .reveal .danger { color: #f85149; }
+  .reveal .safe { color: #7ee787; }
+  .reveal ul { list-style: none; }
+  .reveal ul li::before { content: "▸ "; color: #58a6ff; }
+  .reveal table { margin: 0 auto; font-size: 0.65em; border-collapse: collapse; }
+  .reveal table th { background: #161b22; color: #58a6ff; padding: 0.5em 1em; }
+  .reveal table td { padding: 0.5em 1em; border-bottom: 1px solid #21262d; }
+  .reveal .emoji { font-size: 3em; margin-bottom: 0.3em; }
+  .reveal blockquote { border-left: 4px solid #58a6ff; background: #161b22; padding: 0.5em 1em; font-style: normal; width: 90%; }
+  .poll-box { background: #161b22; border: 2px solid #58a6ff; border-radius: 12px; padding: 1.5em; margin: 0.5em auto; max-width: 80%; }
+  .arch-diagram { background: #161b22; border-radius: 12px; padding: 1.5em; font-family: monospace; font-size: 0.55em; line-height: 1.6; text-align: left; }
+  .two-col { display: flex; gap: 2em; align-items: flex-start; }
+  .two-col > div { flex: 1; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- SLIDE 1: Title -->
+<section>
+  <p style="margin-bottom:0.3em;"><img src="docker-logo-blue.png" alt="Docker" style="height:65px; vertical-align:middle; margin-right:0.5em;"><img src="logo-exact.png" alt="Logo" style="height:300px; vertical-align:middle;"></p>
+  <h1>Secure by Default</h1>
+  <h3>Docker Sandboxes &amp; Docker Compose Meets AI</h3>
+  <p class="small" style="margin-top:2em;">Marco Franzon &middot; Trento &middot; 2026</p>
+  <aside class="notes">Welcome everyone. Today we'll talk about how Docker evolved into a native platform for safe, autonomous AI agents.</aside>
+</section>
+
+<!-- SLIDE 2: Hook - Scary -->
+<section>
+  <h2>A True Story</h2>
+  <blockquote style="font-size:1.1em;">
+    "I gave Claude Code full access to my laptop…<br>
+    <span class="danger">it deleted my node_modules in 3 seconds.</span>"
+  </blockquote>
+  <aside class="notes">Start with the scary scenario. Most people in this room have run AI coding agents without any isolation. Let that sink in.</aside>
+</section>
+
+<!-- SLIDE 3: Hook - Safe -->
+<section>
+  <h2>Now Watch This</h2>
+  <pre><code class="language-bash" data-trim>
+docker sandbox run claude ~/my-project
+  </code></pre>
+  <p style="margin-top:1em;"><span class="safe">Same agent. Same power. Zero risk to your host.</span></p>
+  <aside class="notes">One command. That's all it takes. The agent runs with full autonomy but can't touch anything outside your project.</aside>
+</section>
+
+<!-- SLIDE 4: Audience Poll -->
+<section>
+  <div class="poll-box">
+    <h2>Quick Poll</h2>
+    <p style="font-size:1.1em;">Who has run an AI coding agent locally<br><span class="danger">without any isolation?</span></p>
+    <p class="small" style="margin-top:1em;">🙋 Raise your hand, no judgment (yet)</p>
+  </div>
+  <aside class="notes">Expect 70%+ hands. This sets up the "why" for the rest of the talk.</aside>
+</section>
+
+<!-- SLIDE 5: Thesis -->
+<section>
+  <h2>The Thesis</h2>
+  <p style="font-size:1.1em;">In the age of AI agents that run <span class="highlight">arbitrary code</span>,<br> Docker gives us <span class="safe">secure-by-default isolation</span>.<br> no manual hardening required.</p>
+  <p style="margin-top:1.5em; font-size:0.9em;">Docker Sandboxes + Compose = <span class="highlight">the new developer superpower</span></p>
+  <aside class="notes">This is what we'll prove today. Secure by default means you don't have to be a security expert to be safe.</aside>
+</section>
+
+<!-- SLIDE 6: Why Secure by Default Matters -->
+<section>
+  <h2>Why "Secure by Default" Matters for AI</h2>
+  <ul>
+    <li>AI agents are <span class="highlight">powerful but dangerous</span></li>
+    <li>Hallucinations → <code class="danger">rm -rf /</code></li>
+    <li>Prompt injection → data exfiltration</li>
+    <li>Agents install packages, run scripts, modify files</li>
+    <li><span class="safe">They need autonomy</span>, but we need <span class="safe">boundaries</span></li>
+  </ul>
+  <aside class="notes">Claude Code, Copilot CLI, Gemini CLI, Codex: all can execute arbitrary shell commands. The power is real. So is the risk.</aside>
+</section>
+
+<!-- SLIDE 7: The Agent Landscape -->
+<section>
+  <h2>The Agent Landscape (2026)</h2>
+  <ul>
+    <li>Claude Code (Anthropic)</li>
+    <li>Codex CLI (OpenAI)</li>
+    <li>Gemini CLI (Google)</li>
+    <li>GitHub Copilot CLI</li>
+    <li>OpenCode, Kiro, cagent…</li>
+  </ul>
+  <p style="margin-top:1em;" class="small">All of them want to: read files, run commands, install packages, build &amp; test.</p>
+  <aside class="notes">This isn't one tool, it's a whole category. Every major AI lab ships a coding agent. They all need the same thing: safe execution.</aside>
+</section>
+
+<!-- SLIDE 8: Containers Were Always (Kinda) Sandboxes -->
+<section>
+  <h2>Containers: The Original Sandbox</h2>
+  <div class="two-col">
+    <div>
+      <h3>Isolation Layers</h3>
+      <ul>
+        <li>Namespaces (PID, NET, MNT, USER)</li>
+        <li>cgroups (resource limits)</li>
+        <li>Dropped capabilities</li>
+        <li>seccomp / AppArmor / SELinux</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Hardening Options</h3>
+      <ul>
+        <li>Rootless mode</li>
+        <li>Read-only filesystems</li>
+        <li><code>--no-new-privileges</code></li>
+        <li>User remapping</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">Docker containers already provide many isolation layers. But there's a fundamental limitation…</aside>
+</section>
+
+<!-- SLIDE 9: But Containers Share the Kernel -->
+<section>
+  <h2>The Problem with Containers</h2>
+  <p style="font-size:1.2em;">Containers <span class="danger">share the host kernel</span></p>
+  <p style="margin-top:1em;">A kernel exploit inside a container = <span class="danger">host compromise</span></p>
+  <p style="margin-top:1em;">For untrusted AI-generated code, containers alone are <span class="danger">not enough</span>.</p>
+  <p style="margin-top:1.5em;" class="small">You don't want to remember: <code>--cap-drop=ALL --security-opt=no-new-privileges --read-only</code> every time</p>
+  <aside class="notes">This is the key insight. Containers are great for your own code. But when an AI agent generates and runs arbitrary code, you need a stronger boundary.</aside>
+</section>
+
+<!-- SLIDE 18: Compose Security Built-in -->
+<section>
+  <h2>Compose: Security Built-in</h2>
+  <pre><code class="language-yaml" data-trim>
+services:
+  agent-executor:
+    image: my-agent:latest
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
+    networks:
+      - isolated
+    secrets:
+      - api_key
+
+networks:
+  isolated:
+    internal: true
+
+secrets:
+  api_key:
+    environment: "AGENT_API_KEY"
+  </code></pre>
+  <aside class="notes">Compose gives you declarative security. read_only, cap_drop ALL, resource limits, isolated networks, secrets management, all in YAML.</aside>
+</section>
+
+
+<!-- SLIDE 10: Docker Sandboxes - The MicroVM Revolution -->
+<section>
+  <h2>Docker Sandboxes</h2>
+  <h3>The MicroVM Revolution</h3>
+  <p style="margin-top:1em; font-size:1.1em;">Docker Desktop 4.58+ &middot; macOS &amp; Windows</p>
+  <p style="margin-top:0.5em;">Each agent runs in a <span class="highlight">lightweight microVM</span><br> with its own <span class="safe">private Docker daemon</span></p>
+  <aside class="notes">This is the star of the show. Docker Sandboxes, introduced in Desktop 4.58, use real virtual machines, not containers. This changes everything.</aside>
+</section>
+
+
+<!-- SLIDE 11: Architecture Diagram -->
+<section>
+  <h2>Architecture</h2>
+  <div style="display:flex; justify-content:center; gap:1.5em; margin-top:1em;">
+    <div style="background:#161b22; border:2px solid #8b949e; border-radius:12px; padding:1em 1.5em; width:65%; text-align:left; font-size:0.7em;">
+      <p style="text-align:center; color:#8b949e; margin:0 0 0.5em;">HOST MACHINE</p>
+      <div style="background:#0d1117; border:2px solid #58a6ff; border-radius:8px; padding:0.8em 1em;">
+        <p style="text-align:center; color:#58a6ff; margin:0 0 0.5em;">MicroVM (Sandbox)</p>
+        <div style="display:flex; gap:0.8em;">
+          <div style="flex:1; background:#1c2333; border:1px solid #7ee787; border-radius:6px; padding:0.6em; text-align:center;">
+            <p style="color:#7ee787; margin:0; font-weight:bold;">Private Docker Daemon</p>
+            <p style="color:#8b949e; margin:0.3em 0 0; font-size:0.85em;">Isolated from host</p>
+          </div>
+          <div style="flex:1; background:#1c2333; border:1px solid #ffa657; border-radius:6px; padding:0.6em; text-align:center;">
+            <p style="color:#ffa657; margin:0; font-weight:bold;">AI Agent</p>
+            <p style="color:#8b949e; margin:0.3em 0 0; font-size:0.85em;">Claude Code, Codex…</p>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.8em; margin-top:0.6em;">
+          <div style="flex:1; background:#1c2333; border:1px solid #8b949e; border-radius:6px; padding:0.5em; text-align:center;">
+            <p style="color:#e6edf3; margin:0;">📁 Workspace sync</p>
+            <p style="color:#8b949e; margin:0; font-size:0.85em;">Bidirectional file sync</p>
+          </div>
+          <div style="flex:1; background:#1c2333; border:1px solid #8b949e; border-radius:6px; padding:0.5em; text-align:center;">
+            <p style="color:#e6edf3; margin:0;">🌐 Network proxy</p>
+            <p style="color:#8b949e; margin:0; font-size:0.85em;">HTTP/HTTPS filtered</p>
+          </div>
+        </div>
+      </div>
+      <p style="text-align:center; color:#8b949e; margin:0.6em 0 0; font-size:0.85em;">macOS: virtualization.framework · Windows: Hyper-V</p>
+    </div>
+  </div>
+  <aside class="notes">The microVM has its own kernel, its own Docker daemon, and only your project folder is synced. The agent can docker build, docker run, docker compose up, all inside the VM.</aside>
+</section>
+
+<!-- SLIDE 12: Key Security Properties -->
+<section>
+  <h2>Security Properties</h2>
+  <ul>
+    <li><span class="safe">Separate kernel</span>: no shared kernel exploits</li>
+    <li><span class="safe">Private Docker daemon</span>: no socket escape</li>
+    <li><span class="safe">Bidirectional file sync</span>: only your workspace, not volume mounts</li>
+    <li><span class="safe">Network filtering proxy</span>: HTTP/HTTPS only, raw TCP/UDP blocked</li>
+    <li><span class="safe">No access</span> to host localhost, private networks, cloud metadata</li>
+    <li><span class="safe">Instant cleanup</span>: <code>docker sandbox rm</code></li>
+  </ul>
+  <aside class="notes">Zero host filesystem access outside workspace. Private daemon means no Docker socket escape. MicroVM boundary means kernel exploit containment. This is real isolation.</aside>
+</section>
+
+<!-- SLIDE 13: Network Policies Deep Dive -->
+<section>
+  <h2>Network Policies</h2>
+  <div class="two-col" style="font-size:0.75em;">
+    <div>
+      <h3>Blocked by Default</h3>
+      <ul style="white-space:nowrap;">
+        <li><code>10.0.0.0/8</code></li>
+        <li><code>172.16.0.0/12</code></li>
+        <li><code>192.168.0.0/16</code></li>
+        <li><code>127.0.0.0/8</code> (localhost)</li>
+        <li><code>169.254.0.0/16</code> (cloud metadata)</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Two Modes</h3>
+      <ul>
+        <li><span class="safe">Allow mode</span>: all except blocked CIDRs</li>
+        <li><span class="highlight">Deny mode</span>: only allowed hosts</li>
+      </ul>
+      <pre style="font-size:0.75em;"><code class="language-bash">docker sandbox network proxy \
+  my-sandbox \
+  --policy deny \
+  --allow-host "*.npmjs.org"</code></pre>
+    </div>
+  </div>
+  <aside class="notes">The filtering proxy gives you fine-grained control. Allow mode for development, deny mode for untrusted code. You can monitor everything with docker sandbox network log.</aside>
+</section>
+
+<!-- SLIDE 14: YOLO Mode -->
+<section>
+  <h2>"YOLO Mode", But Safe</h2>
+  <p style="font-size:1.1em;">Agents run <span class="highlight">unsupervised</span>, no permission pop-ups</p>
+  <p style="margin-top:1em;">They can:</p>
+  <ul>
+    <li>Edit code, install packages</li>
+    <li><code>docker build</code> inside the sandbox</li>
+    <li><code>docker compose up</code> full stacks</li>
+    <li>Run tests, linters, formatters</li>
+  </ul>
+  <p style="margin-top:1em;" class="safe">All safely isolated. You sleep at night.</p>
+  <aside class="notes">"YOLO mode, but make it enterprise-compliant." The agent has full autonomy within its boundary. That's Level 4 autonomy without the risk.</aside>
+</section>
+
+<!-- SLIDE 15: Demo 1 -->
+<section>
+  <h2>🎬 Live Demo</h2>
+  <pre><code class="language-bash" data-trim>
+# Create a sandbox for your project
+docker sandbox run claude ~/my-project
+
+# The agent edits code, installs packages, runs tests
+# All inside the microVM, zero host impact
+
+# Check running sandboxes
+docker sandbox ls
+
+# Peek inside
+docker sandbox exec -it claude-my-project bash
+
+# Clean up
+docker sandbox rm claude-my-project
+  </code></pre>
+  <aside class="notes">Show the real thing. Create a sandbox, let Claude Code work on a project, show that host is unaffected. Run docker ps to show sandboxes don't appear there.</aside>
+</section>
+
+<!-- SLIDE 16: Comparison Table -->
+<section>
+  <h2>Isolation Approaches Compared</h2>
+  <table>
+    <thead>
+      <tr><th>Approach</th><th>Isolation</th><th>Agent Can Docker?</th><th>DX</th><th>Secure by Default?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Plain Docker</td><td class="danger">Low</td><td>Yes (risky)</td><td>Great</td><td class="danger">No</td></tr>
+      <tr><td>gVisor / Kata</td><td>Medium/High</td><td>Limited</td><td>OK</td><td>Almost</td></tr>
+      <tr><td>Full VM</td><td class="safe">High</td><td>Yes</td><td class="danger">Poor</td><td class="safe">Yes</td></tr>
+      <tr><td style="color:#58a6ff;font-weight:bold;">Docker Sandboxes</td><td class="safe">High</td><td class="safe">Yes (safe)</td><td class="safe">Best</td><td class="safe">Yes</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">This is the money slide. Docker Sandboxes give you VM-level isolation with container-level DX. No other approach hits all four columns.</aside>
+</section>
+
+<!-- SLIDE 17: Docker Compose Meets AI -->
+<section>
+  <h2>Docker Compose Meets AI</h2>
+  <p style="font-size:1.1em;">Compose isn't just for web apps anymore.</p>
+  <p style="margin-top:1em;">New AI-native patterns:</p>
+  <ul>
+    <li>Models + MCP gateways + tools in one <code>compose.yaml</code></li>
+    <li>Sandboxed agent executors alongside your services</li>
+    <li>Agents spinning up <span class="highlight">full Compose stacks</span> for integration testing</li>
+  </ul>
+  <aside class="notes">Compose gives you the orchestration layer. Define your entire AI stack declaratively. The agent can compose up a whole test environment inside its sandbox.</aside>
+</section>
+
+<!-- SLIDE 20: Docker Model Runner -->
+<section>
+  <h2>Docker Model Runner</h2>
+  <p style="font-size:1.1em;">Run AI models as <span class="highlight">first-class Compose services</span></p>
+  <p style="margin-top:1em;">Docker Desktop 4.41+ &middot; Compose v2.35+</p>
+  <ul>
+    <li>Pull &amp; run LLMs with <code>docker compose up</code></li>
+    <li>OpenAI-compatible API, <span class="safe">zero config</span></li>
+    <li>Auto-injected env vars for endpoints</li>
+    <li>Embeddings, chat, deterministic modes</li>
+  </ul>
+  <aside class="notes">Docker Model Runner lets you declare AI models right in your compose.yaml. Compose pulls and runs the model automatically, and your services get the endpoint URL injected as environment variables. It's an OpenAI-compatible API out of the box.</aside>
+</section>
+
+<!-- SLIDE 21: Model Runner - Compose Syntax -->
+<section>
+  <h2>Models in Compose</h2>
+  <h3>The <code>models</code> Top-Level Element</h3>
+  <div class="two-col" style="font-size:0.8em;">
+    <div>
+      <pre style="font-size:0.85em;"><code class="language-yaml" data-trim>
+models:
+  llm:
+    model: ai/smollm2
+    context_size: 4096
+  embeddings:
+    model: ai/all-minilm
+
+services:
+  app:
+    image: my-ai-app
+    models: [llm, embeddings]
+      </code></pre>
+    </div>
+    <div>
+      <p style="margin-top:0.5em;"><span class="safe">Short syntax</span>: auto-generated env vars</p>
+      <ul style="font-size:0.9em;">
+        <li><code>LLM_URL</code></li>
+        <li><code>LLM_MODEL</code></li>
+        <li><code>EMBEDDINGS_URL</code></li>
+        <li><code>EMBEDDINGS_MODEL</code></li>
+      </ul>
+      <p style="margin-top:1em;">Your app just reads the env vars and talks to the model. <span class="safe">No setup needed</span>.</p>
+    </div>
+  </div>
+  <aside class="notes">The models top-level element is the new recommended syntax; the old provider syntax is deprecated. You declare models by name, and services reference them. Compose auto-generates URL and MODEL environment variables following a naming convention.</aside>
+</section>
+
+
+<!-- SLIDE 22: Model Runner - Advanced Config -->
+<section>
+  <h2>Model Runner: Fine-Tuning</h2>
+  <div class="two-col" style="font-size:0.8em;">
+    <div>
+      <h3>Custom Env Vars (Long Syntax)</h3>
+      <pre><code class="language-yaml" data-trim>
+services:
+  app:
+    image: my-app
+    models:
+      llm:
+        endpoint_var: AI_MODEL_URL
+        model_var: AI_MODEL_NAME
+      </code></pre>
+    </div>
+    <div>
+      <h3>Runtime Presets</h3>
+      <pre><code class="language-yaml" data-trim>
+models:
+  # Deterministic (evals, CI)
+  eval-model:
+    model: ai/smollm2
+    context_size: 4096
+    runtime_flags:
+      - "--temp"
+      - "0"
+      - "--top-k"
+      - "1"
+  # Creative (content gen)
+  creative-model:
+    model: ai/smollm2
+    runtime_flags:
+      - "--temp"
+      - "1"
+      - "--top-p"
+      - "0.9"
+      </code></pre>
+    </div>
+  </div>
+  <aside class="notes">Long syntax lets you pick your own environment variable names. Runtime flags give you full control over inference: deterministic for CI, creative for content generation, concurrent mode with threading for throughput.</aside>
+</section>
+
+<!-- SLIDE 23: Local Models in Docker Sandboxes -->
+<section>
+  <h2>Local Models + Sandboxes</h2>
+  <p style="font-size:0.85em;">Run coding agents inside sandboxes backed by a local model, no cloud, no API keys.</p>
+  <div class="two-col" style="font-size:0.75em;">
+    <div>
+      <h3>docker-compose.yml</h3>
+      <pre><code class="language-yaml" data-trim>
+services:
+  agent:
+    image: my-coding-agent
+    models:
+      llm:
+        model: ai/qwen2.5-coder
+    environment:
+      - OPENAI_BASE_URL=${AI_MODEL_ENDPOINT_URL}
+      - OPENAI_MODEL=${AI_MODEL_NAME}
+      </code></pre>
+    </div>
+    <div>
+      <h3>opencode config</h3>
+      <pre><code class="language-json" data-trim>
+{
+  "model": "qwen2.5-coder",
+  "providers": {
+    "docker-model-runner": {
+      "name": "Docker Model Runner",
+      "baseURL": "${OPENAI_BASE_URL}",
+      "models": {
+        "qwen2.5-coder": {
+          "name": "qwen2.5-coder"
+        }
+      }
+    }
+  }
+}
+      </code></pre>
+    </div>
+  </div>
+  <aside class="notes">Docker Model Runner exposes an OpenAI-compatible endpoint. The sandbox injects OPENAI_BASE_URL automatically via the models key in Compose. opencode picks it up through its provider config — fully air-gapped, no API keys, no data leaving the machine.</aside>
+</section>
+
+
+
+<!-- SLIDE 27: Call to Action -->
+<section>
+  <h2>Try It Today</h2>
+  <pre><code class="language-bash" data-trim>
+# 1. Update Docker Desktop to 4.58+
+# 2. Run your first sandbox
+docker sandbox run claude ~/your-project
+# 3. Ship safer agents tomorrow
+  </code></pre>
+  <p style="margin-top:1em;">Docker Model Runner:</p>
+  <pre><code class="language-bash" data-trim>
+# Pull and run a local model
+docker model pull ai/llama3.2
+# Chat with it directly
+docker model run ai/llama3.2 "Explain Docker sandboxes in one sentence"
+  </code></pre>
+  <p style="margin-top:1.5em;">Resources:</p>
+  <ul style="font-size:0.7em;">
+    <li><a href="https://docs.docker.com/ai/sandboxes/">docs.docker.com/ai/sandboxes</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/architecture/">Architecture deep dive</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/network-policies/">Network policies</a></li>
+  </ul>
+  <aside class="notes">Give them the links. Encourage them to try it today. The barrier to entry is literally one command.</aside>
+</section>
+
+<!-- SLIDE 28: Thank You -->
+<section>
+  <h2>Thank You!</h2>
+  <p style="font-size:1.2em;">Questions?</p>
+  <p style="margin-top:2em;" class="small">🐳 Secure by default. Ship with confidence.</p>
+  <aside class="notes">Open for questions. Thank the audience.</aside>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: true,
+  transition: 'slide',
+  plugins: [RevealHighlight, RevealNotes],
+  width: 1280,
+  height: 720
+});
+</script>
+</body>
+</html>
