@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html">1 · Intro</a></li>
+    <li><a href="02-image-basics.html" class="active">2 · Image Basics</a></li>
+    <li><a href="03-filters.html">3 · Filters</a></li>
+    <li><a href="04-edges.html">4 · Edges</a></li>
+    <li><a href="05-features.html">5 · Features</a></li>
+    <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html">7 · CNNs</a></li>
+    <li><a href="08-detection.html">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 2</h4>
+    <a href="#pixels">Pixels & Channels</a>
+    <a href="#colorspaces">Color Spaces</a>
+    <a href="#demo-color">Demo: Color Explorer</a>
+    <a href="#histogram">Histograms</a>
+    <a href="#demo-hist">Demo: Live Histogram</a>
+    <a href="#equalization">Histogram Equalization</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>Image Basics</h1>
+    <p class="subtitle">Module 2 — Pixels, Color Spaces, and Histograms</p>
+
+    <h2 id="pixels">Pixels and Channels</h2>
+    <p>
+      A digital image is a 2D array of pixels. Each pixel holds a value representing light intensity. For a <strong>grayscale</strong> image, one number per pixel (0 = black, 255 = white). For <strong>color images</strong>, three numbers per pixel — one per channel.
+    </p>
+    <p>
+      In memory, a 640×480 RGB image is stored as a 3D tensor of shape <code>(480, 640, 3)</code> — height × width × channels.
+    </p>
+
+    <div class="demo-box" id="pixels">
+      <h3>Pixel Inspector</h3>
+      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:0.75rem;">Move your mouse over the image to inspect pixel values.</p>
+      <div class="demo-row">
+        <canvas id="pixelCanvas" width="280" height="210" style="cursor:crosshair;"></canvas>
+        <div style="min-width:180px;">
+          <div id="pixel-info" style="background:var(--bg3); border-radius:8px; padding:1rem; font-family:monospace; font-size:0.85rem; line-height:1.8;">
+            Move over image
+          </div>
+          <div id="pixel-swatch" style="width:100%; height:40px; border-radius:6px; margin-top:0.75rem; background:#888; border:1px solid var(--border);"></div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="colorspaces">Color Spaces</h2>
+    <p>Different color spaces represent color in different ways. The choice affects what operations are easy or hard.</p>
+    <ul>
+      <li><strong>RGB</strong> — Red, Green, Blue. How screens emit light. Not perceptually uniform.</li>
+      <li><strong>Grayscale</strong> — Luminance only. Computed as: <code>0.299R + 0.587G + 0.114B</code></li>
+      <li><strong>HSV</strong> — Hue, Saturation, Value. Hue = color type (0–360°). Great for color-based segmentation.</li>
+      <li><strong>Lab (CIELAB)</strong> — Perceptually uniform. L = lightness, a = green↔red, b = blue↔yellow. Used in professional color matching.</li>
+      <li><strong>YCbCr</strong> — Luminance (Y) + chrominance. Used in JPEG compression and video.</li>
+    </ul>
+
+    <div class="demo-box" id="demo-color">
+      <h3>Color Space Explorer</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Red: <span class="val-display" id="r-val">128</span></label>
+            <input type="range" id="r-slider" min="0" max="255" value="128">
+          </div>
+          <div class="control-group">
+            <label>Green: <span class="val-display" id="g-val">90</span></label>
+            <input type="range" id="g-slider" min="0" max="255" value="90">
+          </div>
+          <div class="control-group">
+            <label>Blue: <span class="val-display" id="b-val">200</span></label>
+            <input type="range" id="b-slider" min="0" max="255" value="200">
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div id="color-swatch" style="height:80px; border-radius:8px; border:1px solid var(--border); margin-bottom:0.75rem;"></div>
+          <table id="color-table" style="font-family:monospace; font-size:0.82rem; border-collapse:collapse; width:100%;">
+            <tr><th style="text-align:left; padding:0.2rem 0.5rem; color:var(--muted);">Space</th><th style="text-align:left; padding:0.2rem 0.5rem; color:var(--muted);">Values</th></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="histogram">Image Histograms</h2>
+    <p>
+      A histogram counts how many pixels have each intensity value (0–255). It summarizes the tonal distribution of an image at a glance.
+    </p>
+    <ul>
+      <li><strong>Dark image:</strong> histogram skewed left (many low values)</li>
+      <li><strong>Bright image:</strong> histogram skewed right</li>
+      <li><strong>High contrast:</strong> wide spread, peaks at both ends</li>
+      <li><strong>Low contrast / foggy:</strong> narrow peak in the middle</li>
+    </ul>
+
+    <div class="demo-box" id="demo-hist">
+      <h3>Live Histogram Generator</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Image type</label>
+            <select id="img-type">
+              <option value="gradient">Gradient</option>
+              <option value="dark">Dark image</option>
+              <option value="bright">Bright image</option>
+              <option value="bimodal">High contrast</option>
+              <option value="noise">Noise</option>
+              <option value="circles">Shapes</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Brightness adjust: <span class="val-display" id="br-val">0</span></label>
+            <input type="range" id="br-slider" min="-100" max="100" value="0">
+          </div>
+          <div class="control-group">
+            <label>Contrast: <span class="val-display" id="ct-val">1.0</span></label>
+            <input type="range" id="ct-slider" min="1" max="30" value="10">
+          </div>
+        </div>
+        <canvas id="imgCanvas" width="220" height="165" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+        <canvas id="histCanvas" width="260" height="165" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+      </div>
+    </div>
+
+    <h2 id="equalization">Histogram Equalization</h2>
+    <p>
+      A classic technique to improve contrast: redistribute pixel values so the histogram becomes flat (uniform). Works well on underexposed photos.
+    </p>
+    <div class="formula">CDF(v) = Σ hist(i) for i = 0..v</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>CDF(v)</td><td>Cumulative Distribution Function at value v — how many pixels have intensity ≤ v</td></tr>
+        <tr><td>v</td><td>a specific pixel intensity level, from 0 (black) to 255 (white)</td></tr>
+        <tr><td>Σ (sigma)</td><td>summation — add up all the terms that follow</td></tr>
+        <tr><td>hist(i)</td><td>histogram count — how many pixels in the image have intensity exactly equal to i</td></tr>
+        <tr><td>i = 0..v</td><td>loop variable: sum from intensity 0 up to and including intensity v</td></tr>
+        <tr><td>CDF(v) / total_pixels × 255</td><td>remapping step — scales the cumulative count to the 0–255 output range</td></tr>
+      </table>
+    </div>
+    <p style="font-size:0.82rem; color:var(--muted);">The equalized value of a pixel v is: <code>round(CDF(v) / total_pixels × 255)</code></p>
+
+    <div class="demo-box">
+      <h3>Equalization Demo</h3>
+      <div class="demo-row">
+        <div style="text-align:center;">
+          <canvas id="orig-canvas" width="200" height="150" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+          <div style="font-size:0.75rem; color:var(--muted); margin-top:0.3rem;">Original</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="eq-canvas" width="200" height="150" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+          <div style="font-size:0.75rem; color:var(--muted); margin-top:0.3rem;">Equalized</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="orig-hist-canvas" width="200" height="80" style="border-radius:6px; border:1px solid var(--border); display:block; margin-bottom:4px;"></canvas>
+          <canvas id="eq-hist-canvas" width="200" height="80" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.75rem; color:var(--muted); margin-top:0.3rem;">Histograms (before / after)</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. What is the shape (tensor dimensions) of a 1920×1080 RGB image in memory?</p>
+        <label><input type="radio" name="q1" value="a"> (1920, 1080, 3)</label>
+        <label><input type="radio" name="q1" value="b"> (1080, 1920, 3)</label>
+        <label><input type="radio" name="q1" value="c"> (3, 1920, 1080)</label>
+        <label><input type="radio" name="q1" value="d"> (1920, 1080)</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. You want to detect a red ball regardless of lighting. Which color space is best?</p>
+        <label><input type="radio" name="q2" value="a"> RGB</label>
+        <label><input type="radio" name="q2" value="b"> Grayscale</label>
+        <label><input type="radio" name="q2" value="c"> HSV</label>
+        <label><input type="radio" name="q2" value="d"> YCbCr</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. A histogram has almost all values concentrated in the range 100–150. What does this suggest?</p>
+        <label><input type="radio" name="q3" value="a"> High contrast image</label>
+        <label><input type="radio" name="q3" value="b"> Very dark image</label>
+        <label><input type="radio" name="q3" value="c"> Low contrast, "flat" mid-tone image</label>
+        <label><input type="radio" name="q3" value="d"> Perfect exposure</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="01-intro.html">← Intro</a>
+      <a href="03-filters.html">Next: Filters →</a>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Pixel inspector ──
+const pc = document.getElementById('pixelCanvas');
+const pctx = pc.getContext('2d');
+// Draw a colorful test image
+for (let y = 0; y < pc.height; y++) {
+  for (let x = 0; x < pc.width; x++) {
+    const r = Math.floor((x / pc.width) * 255);
+    const g = Math.floor((y / pc.height) * 255);
+    const b = Math.floor(((x + y) / (pc.width + pc.height)) * 255);
+    pctx.fillStyle = `rgb(${r},${g},${b})`;
+    pctx.fillRect(x, y, 1, 1);
+  }
+}
+pc.addEventListener('mousemove', e => {
+  const rect = pc.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) * (pc.width / rect.width));
+  const y = Math.floor((e.clientY - rect.top) * (pc.height / rect.height));
+  const d = pctx.getImageData(x, y, 1, 1).data;
+  const [r, g, b] = [d[0], d[1], d[2]];
+  const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+  document.getElementById('pixel-info').innerHTML =
+    `Position: (${x}, ${y})\nR: ${r}  G: ${g}  B: ${b}\nGray: ${gray}\nHex: #${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`.replace(/\n/g, '<br>');
+  document.getElementById('pixel-swatch').style.background = `rgb(${r},${g},${b})`;
+});
+
+// ── Color space explorer ──
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+  let h = 0, s = max === 0 ? 0 : d / max, v = max;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + 6) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return [Math.round(h), Math.round(s * 100), Math.round(v * 100)];
+}
+
+function updateColor() {
+  const r = +document.getElementById('r-slider').value;
+  const g = +document.getElementById('g-slider').value;
+  const b = +document.getElementById('b-slider').value;
+  document.getElementById('r-val').textContent = r;
+  document.getElementById('g-val').textContent = g;
+  document.getElementById('b-val').textContent = b;
+  document.getElementById('color-swatch').style.background = `rgb(${r},${g},${b})`;
+  const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+  const [h, s, v] = rgbToHsv(r, g, b);
+  const L = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+  document.getElementById('color-table').innerHTML = `
+    <tr><th style="text-align:left;padding:0.2rem 0.5rem;color:var(--muted);">Space</th><th style="text-align:left;padding:0.2rem 0.5rem;color:var(--muted);">Values</th></tr>
+    <tr><td style="padding:0.2rem 0.5rem;color:#e74c3c;">RGB</td><td style="padding:0.2rem 0.5rem;">(${r}, ${g}, ${b})</td></tr>
+    <tr><td style="padding:0.2rem 0.5rem;color:#95a5a6;">Gray</td><td style="padding:0.2rem 0.5rem;">${gray}</td></tr>
+    <tr><td style="padding:0.2rem 0.5rem;color:#f39c12;">HSV</td><td style="padding:0.2rem 0.5rem;">(${h}°, ${s}%, ${v}%)</td></tr>
+    <tr><td style="padding:0.2rem 0.5rem;color:#3498db;">Lab-L</td><td style="padding:0.2rem 0.5rem;">L≈${L}</td></tr>
+  `;
+}
+['r','g','b'].forEach(c => document.getElementById(`${c}-slider`).addEventListener('input', updateColor));
+updateColor();
+
+// ── Histogram ──
+const imgC = document.getElementById('imgCanvas');
+const imgCtx = imgC.getContext('2d');
+const histC = document.getElementById('histCanvas');
+const histCtx = histC.getContext('2d');
+
+function generateImage(type, brightness, contrast) {
+  const idata = imgCtx.createImageData(imgC.width, imgC.height);
+  for (let i = 0; i < idata.data.length; i += 4) {
+    const px = (i / 4) % imgC.width;
+    const py = Math.floor((i / 4) / imgC.width);
+    let v;
+    if (type === 'gradient') v = (px / imgC.width) * 255;
+    else if (type === 'dark') v = Math.random() * 60 + 5;
+    else if (type === 'bright') v = Math.random() * 60 + 195;
+    else if (type === 'bimodal') v = Math.random() < 0.5 ? Math.random() * 60 : Math.random() * 60 + 195;
+    else if (type === 'noise') v = Math.random() * 255;
+    else {
+      const cx = imgC.width / 2, cy = imgC.height / 2;
+      const d = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2);
+      v = d < 50 ? 220 : d < 80 ? 120 : 40;
+    }
+    v = Math.min(255, Math.max(0, (v - 128) * contrast + 128 + brightness));
+    idata.data[i] = idata.data[i+1] = idata.data[i+2] = v;
+    idata.data[i+3] = 255;
+  }
+  imgCtx.putImageData(idata, 0, 0);
+}
+
+function drawHistogram(ctx, idata, w, h) {
+  const hist = new Array(256).fill(0);
+  for (let i = 0; i < idata.data.length; i += 4) hist[idata.data[i]]++;
+  const maxH = Math.max(...hist);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#161b27';
+  ctx.fillRect(0, 0, w, h);
+  const bw = w / 256;
+  for (let v = 0; v < 256; v++) {
+    const bh = (hist[v] / maxH) * (h - 4);
+    ctx.fillStyle = `rgb(${v},${v},${v+30})`;
+    ctx.fillRect(v * bw, h - bh, bw + 0.5, bh);
+  }
+}
+
+function updateHistDemo() {
+  const type = document.getElementById('img-type').value;
+  const brightness = +document.getElementById('br-slider').value;
+  const contrast = +document.getElementById('ct-slider').value / 10;
+  document.getElementById('br-val').textContent = brightness;
+  document.getElementById('ct-val').textContent = contrast.toFixed(1);
+  generateImage(type, brightness, contrast);
+  const idata = imgCtx.getImageData(0, 0, imgC.width, imgC.height);
+  drawHistogram(histCtx, idata, histC.width, histC.height);
+}
+['img-type','br-slider','ct-slider'].forEach(id => document.getElementById(id).addEventListener('input', updateHistDemo));
+updateHistDemo();
+
+// ── Equalization demo ──
+function buildEqualizationDemo() {
+  const oc = document.getElementById('orig-canvas');
+  const ec = document.getElementById('eq-canvas');
+  const ohc = document.getElementById('orig-hist-canvas');
+  const ehc = document.getElementById('eq-hist-canvas');
+  const octx = oc.getContext('2d');
+  const ectx = ec.getContext('2d');
+
+  // Dark low-contrast image
+  const orig = octx.createImageData(oc.width, oc.height);
+  for (let i = 0; i < orig.data.length; i += 4) {
+    const px = (i/4) % oc.width, py = Math.floor((i/4)/oc.width);
+    let v = Math.floor((px / oc.width) * 80 + (py / oc.height) * 40 + Math.random() * 20);
+    orig.data[i] = orig.data[i+1] = orig.data[i+2] = v;
+    orig.data[i+3] = 255;
+  }
+  octx.putImageData(orig, 0, 0);
+
+  // Build histogram
+  const hist = new Array(256).fill(0);
+  const total = (orig.data.length / 4);
+  for (let i = 0; i < orig.data.length; i += 4) hist[orig.data[i]]++;
+
+  // CDF
+  const cdf = new Array(256).fill(0);
+  cdf[0] = hist[0];
+  for (let i = 1; i < 256; i++) cdf[i] = cdf[i-1] + hist[i];
+  const cdfMin = cdf.find(v => v > 0);
+  const lut = cdf.map(v => Math.round((v - cdfMin) / (total - cdfMin) * 255));
+
+  const eq = ectx.createImageData(ec.width, ec.height);
+  for (let i = 0; i < orig.data.length; i += 4) {
+    const v = lut[orig.data[i]];
+    eq.data[i] = eq.data[i+1] = eq.data[i+2] = v;
+    eq.data[i+3] = 255;
+  }
+  ectx.putImageData(eq, 0, 0);
+
+  drawHistogram(ohc.getContext('2d'), orig, ohc.width, ohc.height);
+  drawHistogram(ehc.getContext('2d'), eq, ehc.width, ehc.height);
+}
+buildEqualizationDemo();
+
+// ── Quiz ──
+const answers = { q1: 'b', q2: 'c', q3: 'c' };
+function checkQuiz() {
+  let score = 0;
+  for (const [q, correct] of Object.entries(answers)) {
+    const sel = document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l => {
+      l.classList.remove('correct','wrong');
+      if (l.querySelector('input').value === correct) l.classList.add('correct');
+      else if (sel && l.querySelector('input').value === sel.value) l.classList.add('wrong');
+    });
+    if (sel && sel.value === correct) score++;
+  }
+  const el = document.getElementById('quiz-result');
+  el.textContent = `Score: ${score}/3 ${score===3?'🎉 Perfect!':score>=2?'👍 Almost there!':'📚 Review and try again.'}`;
+  el.style.color = score===3?'#2ecc71':score>=2?'#f39c12':'#e74c3c';
+}
+</script>
+<script src="course.js"></script>
+</body>
+</html>

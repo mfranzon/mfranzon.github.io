@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html">1 · Intro</a></li>
+    <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+    <li><a href="03-filters.html">3 · Filters</a></li>
+    <li><a href="04-edges.html">4 · Edges</a></li>
+    <li><a href="05-features.html">5 · Features</a></li>
+    <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html" class="active">7 · CNNs</a></li>
+    <li><a href="08-detection.html">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 7</h4>
+    <a href="#why-cnn">Why CNNs?</a>
+    <a href="#conv-layer">Conv Layer</a>
+    <a href="#pooling">Pooling</a>
+    <a href="#activation">Activations</a>
+    <a href="#demo-arch">Demo: Architecture</a>
+    <a href="#feature-maps">Feature Maps</a>
+    <a href="#architectures">Famous Architectures</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>Convolutional Neural Networks</h1>
+    <p class="subtitle">Module 7 — Layers, Pooling, Activations, Feature Maps</p>
+
+    <h2 id="why-cnn">Why CNNs for Vision?</h2>
+    <p>
+      A fully connected (FC) network on a 224×224 RGB image would need 150,528 input neurons. That's enormous — too many parameters, too much compute, and no spatial structure is exploited.
+    </p>
+    <p>
+      CNNs solve this with three key ideas:
+    </p>
+    <ul>
+      <li><strong>Local connectivity:</strong> Each neuron only sees a small patch (receptive field)</li>
+      <li><strong>Parameter sharing:</strong> The same filter slides across the whole image — one filter learns one feature everywhere</li>
+      <li><strong>Spatial hierarchy:</strong> Early layers detect edges → middle layers find shapes → deep layers recognize objects</li>
+    </ul>
+
+    <h2 id="conv-layer">Convolutional Layer</h2>
+    <p>
+      A conv layer applies N learned filters (kernels) to the input. Each filter produces one <strong>feature map</strong>. If input is H×W×C and we apply N filters of size k×k×C, the output is H'×W'×N.
+    </p>
+    <div class="formula">Output size: H' = (H - k + 2P) / S + 1</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>H'</td><td>output height (or width — same formula applies to both) after the conv layer</td></tr>
+        <tr><td>H</td><td>input height in pixels before this layer</td></tr>
+        <tr><td>k</td><td>kernel size — the height/width of the square filter, e.g. k=3 for a 3×3 kernel</td></tr>
+        <tr><td>P</td><td>padding — rows/columns of zeros added to the border; P=(k-1)/2 keeps H' = H</td></tr>
+        <tr><td>2P</td><td>total padding added (P rows on each side, so double)</td></tr>
+        <tr><td>S</td><td>stride — how many pixels the kernel jumps each step; S=1 is dense, S=2 halves the output size</td></tr>
+        <tr><td>+1</td><td>accounts for the first kernel position at the top-left corner</td></tr>
+      </table>
+    </div>
+    <p style="font-size:0.82rem;color:var(--muted);">P = padding, S = stride. Stride > 1 downsamples. Padding = (k-1)/2 preserves spatial size.</p>
+
+    <div class="callout">
+      <strong>Receptive field:</strong> After several conv layers, each output neuron "sees" a larger area of the input. With 5 layers of 3×3 convolutions (stride 1), the effective receptive field is 11×11.
+    </div>
+
+    <h2 id="pooling">Pooling Layers</h2>
+    <p>Pooling reduces spatial dimensions, adding translation invariance and reducing compute.</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0;">
+      <div>
+        <strong>Max Pooling (2×2, stride 2)</strong>
+        <canvas id="maxpool-canvas" width="260" height="130" style="display:block;margin-top:0.5rem;border-radius:6px;border:1px solid var(--border);"></canvas>
+        <p style="font-size:0.78rem;color:var(--muted);">Keep maximum value in each 2×2 block</p>
+      </div>
+      <div>
+        <strong>Average Pooling (2×2, stride 2)</strong>
+        <canvas id="avgpool-canvas" width="260" height="130" style="display:block;margin-top:0.5rem;border-radius:6px;border:1px solid var(--border);"></canvas>
+        <p style="font-size:0.78rem;color:var(--muted);">Average value in each 2×2 block</p>
+      </div>
+    </div>
+
+    <h2 id="activation">Activation Functions</h2>
+    <p>Without nonlinear activations, stacked linear layers collapse to a single linear transformation. Key activations:</p>
+    <div class="demo-box">
+      <h3>Activation Function Visualizer</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Function</label>
+            <select id="act-select">
+              <option value="relu">ReLU</option>
+              <option value="leaky">Leaky ReLU</option>
+              <option value="sigmoid">Sigmoid</option>
+              <option value="tanh">Tanh</option>
+              <option value="gelu">GELU</option>
+            </select>
+          </div>
+          <div id="act-formula" style="font-size:0.82rem;color:var(--accent2);margin-top:0.5rem;font-family:monospace;"></div>
+          <div id="act-desc" style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;"></div>
+        </div>
+        <canvas id="act-canvas" width="280" height="200" style="border-radius:6px;border:1px solid var(--border);"></canvas>
+      </div>
+    </div>
+
+    <h2 id="demo-arch">Interactive CNN Architecture</h2>
+    <p>Click each layer to learn what it does:</p>
+    <div class="demo-box" id="demo-arch">
+      <h3>CNN Architecture Explorer</h3>
+      <div id="arch-vis" style="overflow-x:auto;padding:0.5rem 0;"></div>
+      <div id="arch-info" class="callout" style="margin-top:1rem; min-height:60px;">Click a layer above to see details.</div>
+    </div>
+
+    <h2 id="feature-maps">Feature Maps — What Does Each Layer See?</h2>
+    <p>
+      Early layers in a CNN learn to detect simple patterns — edges, blobs, color gradients — because these are the patterns that differ between training examples. Deep layers combine these into complex, task-specific features.
+    </p>
+    <div class="demo-box">
+      <h3>Simulated Feature Map Responses</h3>
+      <div id="fmap-row" style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:0.5rem;"></div>
+      <div style="font-size:0.78rem; color:var(--muted); margin-top:0.5rem;">
+        Each panel simulates what a filter "responds to". Bright = strong activation.
+      </div>
+    </div>
+
+    <h2 id="architectures">Famous CNN Architectures</h2>
+    <div style="overflow-x:auto;">
+      <table style="border-collapse:collapse; width:100%; font-size:0.82rem;">
+        <thead><tr style="background:var(--bg3);">
+          <th style="padding:0.5rem 0.75rem;text-align:left;border:1px solid var(--border);">Model</th>
+          <th style="padding:0.5rem 0.75rem;border:1px solid var(--border);">Year</th>
+          <th style="padding:0.5rem 0.75rem;border:1px solid var(--border);">Key Innovation</th>
+          <th style="padding:0.5rem 0.75rem;border:1px solid var(--border);">ImageNet Top-5</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">AlexNet</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2012</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">GPU training, ReLU, Dropout</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">84.7%</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">VGG-16</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2014</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Depth with 3×3 convs only</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">92.7%</td></tr>
+          <tr><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">GoogLeNet</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2014</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Inception modules, 1×1 convs</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">93.3%</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">ResNet-50</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2015</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Residual (skip) connections</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">96.4%</td></tr>
+          <tr><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">EfficientNet</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2019</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Compound scaling (depth/width/res)</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">97.1%</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">ViT</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2020</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Vision Transformer, patch tokens</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">97.9%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. A conv layer has input 32×32×3, uses 16 filters of size 3×3, stride 1, padding 1. What is the output shape?</p>
+        <label><input type="radio" name="q1" value="a"> 30×30×16</label>
+        <label><input type="radio" name="q1" value="b"> 32×32×16</label>
+        <label><input type="radio" name="q1" value="c"> 32×32×3</label>
+        <label><input type="radio" name="q1" value="d"> 16×16×16</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. Why are residual (skip) connections in ResNet important?</p>
+        <label><input type="radio" name="q2" value="a"> They reduce the number of parameters</label>
+        <label><input type="radio" name="q2" value="b"> They allow gradients to flow directly through very deep networks, solving vanishing gradients</label>
+        <label><input type="radio" name="q2" value="c"> They speed up inference by skipping layers</label>
+        <label><input type="radio" name="q2" value="d"> They add attention to important features</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. ReLU(x) = max(0,x). What is its main advantage over sigmoid?</p>
+        <label><input type="radio" name="q3" value="a"> It outputs values between 0 and 1</label>
+        <label><input type="radio" name="q3" value="b"> It is differentiable everywhere</label>
+        <label><input type="radio" name="q3" value="c"> It does not suffer from the vanishing gradient problem for positive inputs</label>
+        <label><input type="radio" name="q3" value="d"> It is symmetric around zero</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="06-segmentation.html">← Segmentation</a>
+      <a href="08-detection.html">Next: Detection →</a>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Pooling visualizations ──
+function drawPoolingDemo(canvasId, mode) {
+  const c = document.getElementById(canvasId);
+  const ctx = c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.fillStyle='#161b27'; ctx.fillRect(0,0,W,H);
+
+  // 4x4 input grid
+  const vals = [[200,120,50,180],[30,210,90,140],[170,60,230,110],[80,190,40,160]];
+  const gs=24, startX=10, startY=10;
+  vals.forEach((row,r)=>row.forEach((v,c2)=>{
+    ctx.fillStyle=`rgb(${v},${v},${v+20})`;
+    ctx.fillRect(startX+c2*gs, startY+r*gs, gs-2, gs-2);
+    ctx.fillStyle='#fff'; ctx.font='9px monospace'; ctx.textAlign='center';
+    ctx.fillText(v, startX+c2*gs+gs/2-1, startY+r*gs+gs/2+3);
+  }));
+
+  // Arrow
+  ctx.fillStyle='#7c6af7'; ctx.font='16px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('→', startX+4*gs+18, startY+2*gs);
+
+  // 2x2 output
+  const out2x2 = [[0,1],[2,3]].map(rows => [[0,1],[2,3]].map(cols => {
+    const block = [vals[rows[0]][cols[0]],vals[rows[0]][cols[1]],vals[rows[1]][cols[0]],vals[rows[1]][cols[1]]];
+    return mode==='max'?Math.max(...block):Math.round(block.reduce((a,b)=>a+b,0)/4);
+  }));
+  const ostart=startX+4*gs+40, ogs=36;
+  out2x2.forEach((row,r)=>row.forEach((v,c2)=>{
+    const t=v/255;
+    ctx.fillStyle=`rgb(${v},${v},${v+20})`;
+    ctx.fillRect(ostart+c2*ogs, startY+r*ogs, ogs-2, ogs-2);
+    ctx.fillStyle='#fff'; ctx.font='10px monospace'; ctx.textAlign='center';
+    ctx.fillText(v, ostart+c2*ogs+ogs/2-1, startY+r*ogs+ogs/2+4);
+  }));
+
+  // Labels
+  ctx.fillStyle='#8892a4'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('4×4 input', startX, H-6);
+  ctx.fillText('2×2 output', ostart, H-6);
+}
+drawPoolingDemo('maxpool-canvas','max');
+drawPoolingDemo('avgpool-canvas','avg');
+
+// ── Activation functions ──
+const actFns = {
+  relu:   {fn:x=>Math.max(0,x), formula:'f(x) = max(0, x)', desc:'Simple and effective. No vanishing gradient for x>0. Dead neurons possible (x always ≤ 0).'},
+  leaky:  {fn:x=>x>0?x:0.01*x, formula:'f(x) = x if x>0 else 0.01x', desc:'Fixes dead ReLU: small negative slope keeps neurons alive.'},
+  sigmoid:{fn:x=>1/(1+Math.exp(-x)), formula:'f(x) = 1/(1+e^{-x})', desc:'Output in (0,1). Vanishing gradients for large |x|. Used in binary classification outputs.'},
+  tanh:   {fn:x=>Math.tanh(x), formula:'f(x) = tanh(x)', desc:'Output in (-1,1), zero-centered. Still has vanishing gradient issue.'},
+  gelu:   {fn:x=>x*0.5*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+0.044715*x**3))), formula:'f(x) ≈ x·Φ(x)', desc:'Used in BERT, GPT, ViT. Smooth, probabilistic ReLU. State of the art for transformers.'},
+};
+
+function drawActivation(name) {
+  const {fn,formula,desc} = actFns[name];
+  document.getElementById('act-formula').textContent = formula;
+  document.getElementById('act-desc').textContent = desc;
+  const c=document.getElementById('act-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.fillStyle='#161b27'; ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='#2a3448'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=W/8){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=H/8){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // Axes
+  ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+  // Function
+  ctx.strokeStyle='#7c6af7'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let px=0;px<W;px++){
+    const x=(px-W/2)/(W/8)*1; // -4 to +4
+    let y=fn(x);
+    y=H/2-y*(H/4);
+    if(px===0) ctx.moveTo(px,y); else ctx.lineTo(px,y);
+  }
+  ctx.stroke();
+  // Labels
+  ctx.fillStyle='#8892a4'; ctx.font='10px monospace'; ctx.textAlign='center';
+  [-4,-2,0,2,4].forEach((v,i)=>{
+    ctx.fillText(v, W/2+v*(W/8), H/2+14);
+    if(v!==0) ctx.fillText(v, W/2+4, H/2-v*(H/4)+4);
+  });
+  ctx.fillStyle='#4fc3f7'; ctx.font='11px sans-serif';
+  ctx.fillText(name.toUpperCase(), W-4, 14); ctx.textAlign='right';
+}
+document.getElementById('act-select').addEventListener('change',e=>drawActivation(e.target.value));
+drawActivation('relu');
+
+// ── Architecture Explorer ──
+const layers = [
+  {name:'Input\n224×224×3', color:'#2980b9', info:'Input: a 224×224 RGB image. Shape: (224, 224, 3). Total: 150,528 values.'},
+  {name:'Conv1\n3×3, 64', color:'#7c6af7', info:'Conv layer: 64 filters of 3×3×3. Learns low-level features: edges, colors. Output: 224×224×64.'},
+  {name:'ReLU', color:'#27ae60', info:'ReLU activation: max(0,x). Adds nonlinearity. Makes deep learning possible.'},
+  {name:'MaxPool\n2×2', color:'#8e44ad', info:'Max pooling 2×2 stride 2. Halves spatial dims. Adds translation invariance. Output: 112×112×64.'},
+  {name:'Conv2\n3×3, 128', color:'#7c6af7', info:'Second conv layer: 128 filters. Learns mid-level features: corners, curves, textures. Output: 112×112×128.'},
+  {name:'ReLU', color:'#27ae60', info:'ReLU activation again. Deeper networks need nonlinearities at every layer.'},
+  {name:'MaxPool\n2×2', color:'#8e44ad', info:'Pooling again. Output: 56×56×128.'},
+  {name:'Conv3\n3×3, 256', color:'#7c6af7', info:'Deeper conv: 256 filters. Features become more abstract — parts of objects.'},
+  {name:'Flatten', color:'#c0392b', info:'Flatten spatial dims: convert 56×56×256 tensor to a 802,816-dim vector. Connects to FC layers.'},
+  {name:'FC 1024', color:'#e67e22', info:'Fully connected layer: 1024 neurons. Combines all features globally. Dense feature representation.'},
+  {name:'Dropout\n0.5', color:'#7f8c8d', info:'Randomly zeros 50% of neurons during training. Prevents overfitting by forcing redundant representations.'},
+  {name:'FC → N\nSoftmax', color:'#e74c3c', info:'Final FC layer: N neurons (one per class). Softmax gives class probabilities summing to 1.'},
+];
+
+const archVis = document.getElementById('arch-vis');
+const archInfo = document.getElementById('arch-info');
+const archContainer = document.createElement('div');
+archContainer.style.cssText='display:flex;align-items:center;gap:4px;padding:0.5rem 0;min-width:max-content;';
+layers.forEach((l,i)=>{
+  const box=document.createElement('div');
+  box.style.cssText=`background:${l.color}22;border:1.5px solid ${l.color}88;border-radius:6px;padding:6px 8px;font-size:0.7rem;text-align:center;cursor:pointer;white-space:pre;line-height:1.3;transition:all 0.12s;min-width:60px;`;
+  box.textContent=l.name;
+  box.addEventListener('click',()=>{
+    archContainer.querySelectorAll('div[data-layer]').forEach(d=>d.style.borderColor=layers[+d.dataset.layer].color+'88');
+    box.style.borderColor=l.color;
+    archInfo.textContent=l.info;
+  });
+  box.dataset.layer=i;
+  archContainer.appendChild(box);
+  if(i<layers.length-1){
+    const arr=document.createElement('span');
+    arr.textContent='→';
+    arr.style.cssText='color:#4a5568;font-size:0.8rem;';
+    archContainer.appendChild(arr);
+  }
+});
+archVis.appendChild(archContainer);
+
+// ── Feature map simulation ──
+const fmapRow=document.getElementById('fmap-row');
+const fmaps=[
+  {name:'Horizontal edges',fn:(x,y,w,h)=>Math.abs(Math.sin(y/h*Math.PI*4))*255},
+  {name:'Vertical edges',fn:(x,y,w,h)=>Math.abs(Math.sin(x/w*Math.PI*4))*255},
+  {name:'Blob detector',fn:(x,y,w,h)=>{const cx=w/2,cy=h/2;return Math.max(0,255-Math.sqrt((x-cx)**2+(y-cy)**2)*4);}},
+  {name:'Corner response',fn:(x,y,w,h)=>Math.abs(Math.sin(x/w*Math.PI*3))*Math.abs(Math.sin(y/h*Math.PI*3))*255},
+  {name:'High freq texture',fn:(x,y,w,h)=>Math.abs(Math.sin(x*0.8+y*0.5))*255},
+  {name:'Color gradient',fn:(x,y,w,h)=>(x/w)*255},
+];
+fmaps.forEach(fm=>{
+  const wrap=document.createElement('div');
+  wrap.style.cssText='text-align:center;';
+  const c=document.createElement('canvas');
+  c.width=90; c.height=90;
+  c.style.cssText='border-radius:6px;border:1px solid var(--border);display:block;';
+  const ctx=c.getContext('2d');
+  for(let y=0;y<90;y++) for(let x=0;x<90;x++){
+    const v=Math.min(255,Math.max(0,fm.fn(x,y,90,90)))|0;
+    ctx.fillStyle=`hsl(260,60%,${v/255*60+15}%)`;
+    ctx.fillRect(x,y,1,1);
+  }
+  const label=document.createElement('div');
+  label.style.cssText='font-size:0.65rem;color:var(--muted);margin-top:4px;max-width:90px;line-height:1.3;';
+  label.textContent=fm.name;
+  wrap.appendChild(c); wrap.appendChild(label);
+  fmapRow.appendChild(wrap);
+});
+
+// Quiz
+const answers={q1:'b',q2:'b',q3:'c'};
+function checkQuiz(){
+  let score=0;
+  for(const [q,correct] of Object.entries(answers)){
+    const sel=document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l=>{
+      l.classList.remove('correct','wrong');
+      if(l.querySelector('input').value===correct) l.classList.add('correct');
+      else if(sel&&l.querySelector('input').value===sel.value) l.classList.add('wrong');
+    });
+    if(sel&&sel.value===correct) score++;
+  }
+  const el=document.getElementById('quiz-result');
+  el.textContent=`Score: ${score}/3 ${score===3?'🎉 Perfect!':score>=2?'👍 Almost!':'📚 Review and try again.'}`;
+  el.style.color=score===3?'#2ecc71':score>=2?'#f39c12':'#e74c3c';
+}
+</script>
+<script src="course.js"></script>
+</body>
+</html>

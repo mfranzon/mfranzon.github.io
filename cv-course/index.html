@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="topnav">
+    <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+    <ul>
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="01-intro.html">1 · Intro</a></li>
+      <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+      <li><a href="03-filters.html">3 · Filters</a></li>
+      <li><a href="04-edges.html">4 · Edges</a></li>
+      <li><a href="05-features.html">5 · Features</a></li>
+      <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+      <li><a href="07-cnn.html">7 · CNNs</a></li>
+      <li><a href="08-detection.html">8 · Detection</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-text">
+      <h1>Computer Vision<br><span>Interactive Course</span></h1>
+      <p>Learn how machines see, through interactive demos, visualizations, and hands-on experiments. No setup required.</p>
+      <a href="01-intro.html" class="btn-primary">Start Learning →</a>
+    </div>
+    <div class="hero-canvas-wrap">
+      <canvas id="heroCanvas" width="420" height="300"></canvas>
+    </div>
+  </header>
+
+  <section class="modules">
+    <h2>Course Modules</h2>
+    <div class="module-grid">
+      <a href="01-intro.html" class="module-card">
+        <div class="mod-num">01</div>
+        <h3>What is Computer Vision?</h3>
+        <p>History, applications, the image pipeline, and how cameras work.</p>
+        <div class="card-meta">
+          <span class="tag">Conceptual</span>
+          <span class="time">⏱ 10 min</span>
+        </div>
+      </a>
+      <a href="02-image-basics.html" class="module-card">
+        <div class="mod-num">02</div>
+        <h3>Image Basics</h3>
+        <p>Pixels, color spaces (RGB, HSV, grayscale), histograms.</p>
+        <div class="card-meta">
+          <span class="tag">Interactive</span>
+          <span class="time">⏱ 12 min</span>
+        </div>
+      </a>
+      <a href="03-filters.html" class="module-card">
+        <div class="mod-num">03</div>
+        <h3>Spatial Filters</h3>
+        <p>Convolution, blur, sharpen, noise reduction, live kernel editor.</p>
+        <div class="card-meta">
+          <span class="tag">Interactive</span>
+          <span class="time">⏱ 15 min</span>
+        </div>
+      </a>
+      <a href="04-edges.html" class="module-card">
+        <div class="mod-num">04</div>
+        <h3>Edge Detection</h3>
+        <p>Sobel, Prewitt, Laplacian, Canny, tune parameters in real time.</p>
+        <div class="card-meta">
+          <span class="tag">Interactive</span>
+          <span class="time">⏱ 15 min</span>
+        </div>
+      </a>
+      <a href="05-features.html" class="module-card">
+        <div class="mod-num">05</div>
+        <h3>Feature Detection</h3>
+        <p>Corners, Harris detector, SIFT/ORB concepts, keypoint matching.</p>
+        <div class="card-meta">
+          <span class="tag">Demo</span>
+          <span class="time">⏱ 15 min</span>
+        </div>
+      </a>
+      <a href="06-segmentation.html" class="module-card">
+        <div class="mod-num">06</div>
+        <h3>Segmentation</h3>
+        <p>Thresholding, k-means clustering, watershed, visual walkthroughs.</p>
+        <div class="card-meta">
+          <span class="tag">Interactive</span>
+          <span class="time">⏱ 12 min</span>
+        </div>
+      </a>
+      <a href="07-cnn.html" class="module-card">
+        <div class="mod-num">07</div>
+        <h3>Convolutional Neural Nets</h3>
+        <p>Layers, pooling, activations, feature maps, animated architecture.</p>
+        <div class="card-meta">
+          <span class="tag">Visual</span>
+          <span class="time">⏱ 18 min</span>
+        </div>
+      </a>
+      <a href="08-detection.html" class="module-card">
+        <div class="mod-num">08</div>
+        <h3>Object Detection</h3>
+        <p>Sliding windows, anchor boxes, YOLO intuition, IoU explained.</p>
+        <div class="card-meta">
+          <span class="tag">Visual</span>
+          <span class="time">⏱ 15 min</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <p>Built with ♥ by Marco · Inspired by Stanford CS231n, OpenCV docs, and Szeliski's <em>Computer Vision: Algorithms and Applications</em></p>
+  </footer>
+
+  <script>
+    // Hero canvas: split view — raw scene (left) → edge-detected (right).
+    // Shows what the course teaches at a glance.
+    const canvas = document.getElementById('heroCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const half = W / 2;
+    let t = 0;
+
+    function scene(x, y, tt) {
+      // synthetic scene: moving shapes with smooth shading
+      const cx1 = half * 0.45 + Math.sin(tt * 0.8) * 18;
+      const cy1 = H * 0.42 + Math.cos(tt * 0.6) * 14;
+      const r1 = 52;
+      const cx2 = half * 0.65, cy2 = H * 0.72;
+      const dx = x - cx1, dy = y - cy1;
+      const d1 = Math.sqrt(dx * dx + dy * dy);
+      let v = 230;
+      // sky gradient
+      v = 200 - (y / H) * 60;
+      // ground
+      if (y > H * 0.7) v = 70 + (y - H * 0.7) * 0.4;
+      // sun/disc
+      if (d1 < r1) v = 240 - d1 * 0.6;
+      // rectangle (building)
+      if (x > cx2 - 40 && x < cx2 + 40 && y > cy2 - 60 && y < cy2 + 50) v = 95;
+      // window highlight
+      if (x > cx2 - 20 && x < cx2 + 5 && y > cy2 - 40 && y < cy2 - 10) v = 200;
+      return Math.max(0, Math.min(255, v));
+    }
+
+    function draw() {
+      // === left: raw image ===
+      const img = ctx.createImageData(half, H);
+      const buf = new Float32Array(half * H);
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < half; x++) {
+          const v = scene(x, y, t);
+          buf[y * half + x] = v;
+          const i = (y * half + x) * 4;
+          img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+          img.data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+
+      // === right: Sobel edge detection on the buffer ===
+      const edgeImg = ctx.createImageData(half, H);
+      for (let y = 1; y < H - 1; y++) {
+        for (let x = 1; x < half - 1; x++) {
+          const gx =
+            -buf[(y - 1) * half + (x - 1)] + buf[(y - 1) * half + (x + 1)] +
+            -2 * buf[y * half + (x - 1)] + 2 * buf[y * half + (x + 1)] +
+            -buf[(y + 1) * half + (x - 1)] + buf[(y + 1) * half + (x + 1)];
+          const gy =
+            -buf[(y - 1) * half + (x - 1)] - 2 * buf[(y - 1) * half + x] - buf[(y - 1) * half + (x + 1)] +
+             buf[(y + 1) * half + (x - 1)] + 2 * buf[(y + 1) * half + x] +  buf[(y + 1) * half + (x + 1)];
+          const mag = Math.min(255, Math.sqrt(gx * gx + gy * gy) * 0.7);
+          const i = (y * half + x) * 4;
+          // accent color (matches portfolio/course palette)
+          edgeImg.data[i] = mag * 0.16;
+          edgeImg.data[i + 1] = mag * 0.30;
+          edgeImg.data[i + 2] = mag * 0.55;
+          edgeImg.data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(edgeImg, half, 0);
+
+      // separator
+      ctx.fillStyle = '#c9c0b0';
+      ctx.fillRect(half - 1, 0, 2, H);
+
+      // labels
+      ctx.font = 'italic 600 11px Lora, serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillRect(8, 8, 56, 18);
+      ctx.fillStyle = '#1c1814';
+      ctx.fillText('input', 16, 21);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillRect(half + 8, 8, 70, 18);
+      ctx.fillStyle = '#2a4e8c';
+      ctx.fillText('edges', half + 16, 21);
+
+      t += 0.012;
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+<script src="course.js"></script>
+</body>
+</html>

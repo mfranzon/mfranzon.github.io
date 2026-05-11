@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html">1 · Intro</a></li>
+    <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+    <li><a href="03-filters.html" class="active">3 · Filters</a></li>
+    <li><a href="04-edges.html">4 · Edges</a></li>
+    <li><a href="05-features.html">5 · Features</a></li>
+    <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html">7 · CNNs</a></li>
+    <li><a href="08-detection.html">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 3</h4>
+    <a href="#convolution">Convolution</a>
+    <a href="#kernels">Common Kernels</a>
+    <a href="#demo-conv">Demo: Kernel Editor</a>
+    <a href="#blur">Blur Types</a>
+    <a href="#demo-blur">Demo: Live Blur</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>Spatial Filters &amp; Convolution</h1>
+    <p class="subtitle">Module 3 — Kernels, Blur, Sharpen, Noise Reduction</p>
+
+    <h2 id="convolution">What is Convolution?</h2>
+    <p>
+      Convolution is the fundamental operation in image processing (and CNNs). A small matrix called a <strong>kernel</strong> (or filter) slides across the image. At each position, you multiply each kernel value by the corresponding pixel, then sum — that sum becomes the output pixel.
+    </p>
+
+    <div class="formula">(I ★ K)(x, y) = Σᵢ Σⱼ I(x+i, y+j) · K(i, j)</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>(I ★ K)(x, y)</td><td>result of convolving image I with kernel K at output pixel (x, y)</td></tr>
+        <tr><td>I</td><td>input image — a 2-D grid of pixel intensity values</td></tr>
+        <tr><td>K</td><td>kernel (filter) — a small matrix, e.g. 3×3, whose values define the operation (blur, sharpen, edge detect...)</td></tr>
+        <tr><td>★</td><td>convolution operator — slide K over every pixel of I and compute a weighted sum</td></tr>
+        <tr><td>Σᵢ Σⱼ</td><td>double summation — loop over every row i and column j of the kernel</td></tr>
+        <tr><td>I(x+i, y+j)</td><td>the neighboring pixel of I offset by (i, j) from the center position (x, y)</td></tr>
+        <tr><td>K(i, j)</td><td>the kernel weight at position (i, j) — how much that neighbor contributes</td></tr>
+        <tr><td>· (dot)</td><td>multiply the neighbor pixel value by the kernel weight, then add it to the running total</td></tr>
+      </table>
+    </div>
+
+    <p>The kernel encodes <em>what pattern</em> you're looking for or what effect you want. A blur kernel averages neighbors; an edge kernel looks for intensity differences.</p>
+
+    <div class="callout tip">
+      <strong>Padding:</strong> When the kernel reaches the border, we have less neighbors. Common strategies: <em>zero padding</em> (pad with 0s), <em>reflect padding</em> (mirror the image), or just <em>crop</em> the output.
+    </div>
+
+    <h2 id="kernels">Common Kernels</h2>
+    <div class="kernel-gallery">
+      <div class="kernel-card" data-k="0,0,0,0,1,0,0,0,0" data-name="Identity">
+        <div class="k-name">Identity</div>
+        <div class="k-grid" data-vals="0,0,0,0,1,0,0,0,0"></div>
+        <div class="k-desc">No change</div>
+      </div>
+      <div class="kernel-card" data-k="0.111,0.111,0.111,0.111,0.111,0.111,0.111,0.111,0.111" data-name="Box Blur">
+        <div class="k-name">Box Blur</div>
+        <div class="k-grid" data-vals="1,1,1,1,1,1,1,1,1"></div>
+        <div class="k-desc">Average neighbors</div>
+      </div>
+      <div class="kernel-card" data-k="0,-1,0,-1,5,-1,0,-1,0" data-name="Sharpen">
+        <div class="k-name">Sharpen</div>
+        <div class="k-grid" data-vals="0,-1,0,-1,5,-1,0,-1,0"></div>
+        <div class="k-desc">Enhance edges</div>
+      </div>
+      <div class="kernel-card" data-k="-1,-1,-1,-1,8,-1,-1,-1,-1" data-name="Laplacian">
+        <div class="k-name">Laplacian</div>
+        <div class="k-grid" data-vals="-1,-1,-1,-1,8,-1,-1,-1,-1"></div>
+        <div class="k-desc">All-direction edges</div>
+      </div>
+      <div class="kernel-card" data-k="-1,-1,-1,0,0,0,1,1,1" data-name="Sobel Y">
+        <div class="k-name">Sobel Y</div>
+        <div class="k-grid" data-vals="-1,-1,-1,0,0,0,1,1,1"></div>
+        <div class="k-desc">Horizontal edges</div>
+      </div>
+      <div class="kernel-card" data-k="-1,0,1,-1,0,1,-1,0,1" data-name="Sobel X">
+        <div class="k-name">Sobel X</div>
+        <div class="k-grid" data-vals="-1,0,1,-1,0,1,-1,0,1"></div>
+        <div class="k-desc">Vertical edges</div>
+      </div>
+    </div>
+
+    <div class="demo-box" id="demo-conv">
+      <h3>Interactive Kernel Editor</h3>
+      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:0.75rem;">Edit kernel values, then apply to the image. Click a preset above to load it.</p>
+      <div class="demo-row">
+        <div>
+          <div id="kernel-editor" style="display:grid; grid-template-columns:repeat(3,56px); gap:4px; margin-bottom:0.75rem;"></div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button onclick="applyKernel()" style="padding:0.4rem 0.9rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.82rem;">Apply</button>
+            <button onclick="resetKernel()" style="padding:0.4rem 0.9rem; background:var(--bg3); color:var(--text); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:0.82rem;">Reset</button>
+          </div>
+          <div id="kernel-name-label" style="margin-top:0.5rem; font-size:0.78rem; color:var(--accent2);">Identity</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="src-canvas" width="220" height="165" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Original</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="dst-canvas" width="220" height="165" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Filtered</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="blur">Types of Blur</h2>
+    <ul>
+      <li><strong>Box blur:</strong> Each pixel = average of its neighbors. Fast but not realistic.</li>
+      <li><strong>Gaussian blur:</strong> Weighted average — neighbors closer to center count more. Most natural. σ controls spread.</li>
+      <li><strong>Median filter:</strong> Replace each pixel with the <em>median</em> of neighbors. Preserves edges, excellent for salt-and-pepper noise.</li>
+      <li><strong>Bilateral filter:</strong> Blur only pixels with similar intensity — smooths while preserving edges.</li>
+    </ul>
+
+    <div class="demo-box" id="demo-blur">
+      <h3>Blur Comparison — Live</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Filter type</label>
+            <select id="blur-type">
+              <option value="none">None (original)</option>
+              <option value="box">Box blur</option>
+              <option value="gaussian">Gaussian blur</option>
+              <option value="median">Median filter</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Radius: <span class="val-display" id="blur-r-val">2</span>px</label>
+            <input type="range" id="blur-r" min="1" max="8" value="2">
+          </div>
+          <div class="control-group">
+            <label>Add noise: <span class="val-display" id="noise-val">0</span></label>
+            <input type="range" id="noise-slider" min="0" max="80" value="0">
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="blur-src" width="220" height="165" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">With noise</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="blur-dst" width="220" height="165" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">After filter</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. A 3×3 box blur kernel sums all 9 neighbors. What should each value be so pixel values stay in [0,255]?</p>
+        <label><input type="radio" name="q1" value="a"> 1</label>
+        <label><input type="radio" name="q1" value="b"> 1/9 ≈ 0.111</label>
+        <label><input type="radio" name="q1" value="c"> 9</label>
+        <label><input type="radio" name="q1" value="d"> 1/3</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. Which filter is best for removing salt-and-pepper noise while preserving edges?</p>
+        <label><input type="radio" name="q2" value="a"> Gaussian blur</label>
+        <label><input type="radio" name="q2" value="b"> Box blur</label>
+        <label><input type="radio" name="q2" value="c"> Median filter</label>
+        <label><input type="radio" name="q2" value="d"> Sharpen filter</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. You convolve an image with a sharpen kernel: [0,-1,0,-1,5,-1,0,-1,0]. What is the sum of the kernel values?</p>
+        <label><input type="radio" name="q3" value="a"> 0</label>
+        <label><input type="radio" name="q3" value="b"> 1</label>
+        <label><input type="radio" name="q3" value="c"> 5</label>
+        <label><input type="radio" name="q3" value="d"> -4</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="02-image-basics.html">← Image Basics</a>
+      <a href="04-edges.html">Next: Edge Detection →</a>
+    </div>
+  </main>
+</div>
+
+<style>
+.kernel-gallery { display:flex; gap:0.75rem; flex-wrap:wrap; margin:1rem 0; }
+.kernel-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+  padding:0.75rem; cursor:pointer; transition:border-color 0.12s; min-width:110px;
+}
+.kernel-card:hover { border-color:var(--accent); }
+.kernel-card.selected { border-color:var(--accent2); }
+.k-name { font-size:0.8rem; font-weight:700; margin-bottom:0.4rem; }
+.k-desc { font-size:0.7rem; color:var(--muted); margin-top:0.4rem; }
+.k-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+.k-cell {
+  width:28px; height:20px; font-size:0.65rem; text-align:center;
+  border-radius:3px; line-height:20px;
+}
+.kernel-input {
+  width:52px; height:36px; background:var(--bg3); border:1px solid var(--border);
+  color:var(--text); border-radius:4px; text-align:center; font-size:0.85rem;
+  font-family:monospace;
+}
+</style>
+
+<script>
+let currentKernel = [0,0,0, 0,1,0, 0,0,0];
+
+// Build kernel cards
+document.querySelectorAll('.kernel-card').forEach(card => {
+  const vals = card.dataset.k.split(',').map(Number);
+  const grid = card.querySelector('.k-grid');
+  vals.forEach(v => {
+    const c = document.createElement('div');
+    c.className = 'k-cell';
+    c.textContent = v % 1 === 0 ? v : v.toFixed(2);
+    c.style.background = v > 0 ? `rgba(76,195,247,${Math.min(1,v/5)*0.5})` : v < 0 ? `rgba(231,76,60,${Math.min(1,-v/5)*0.5})` : 'var(--bg3)';
+    c.style.color = 'var(--text)';
+    grid.appendChild(c);
+  });
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.kernel-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    loadKernelToEditor(vals, card.dataset.name);
+  });
+});
+
+// Build kernel editor
+const ke = document.getElementById('kernel-editor');
+function buildEditor(vals) {
+  ke.innerHTML = '';
+  vals.forEach((v, i) => {
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.className = 'kernel-input';
+    inp.step = '0.1'; inp.value = v;
+    inp.dataset.i = i;
+    ke.appendChild(inp);
+  });
+}
+function loadKernelToEditor(vals, name) {
+  currentKernel = [...vals];
+  buildEditor(vals);
+  document.getElementById('kernel-name-label').textContent = name || '';
+  applyKernel();
+}
+buildEditor(currentKernel);
+
+// Draw source image
+const srcC = document.getElementById('src-canvas');
+const srcCtx = srcC.getContext('2d');
+function drawTestImage(ctx, w, h) {
+  // Geometric shapes
+  ctx.fillStyle = '#1e2535';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#7c6af7';
+  ctx.fillRect(20, 20, 70, 70);
+  ctx.fillStyle = '#4fc3f7';
+  ctx.beginPath(); ctx.arc(155, 55, 40, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2ecc71';
+  ctx.beginPath(); ctx.moveTo(30, 120); ctx.lineTo(80, 155); ctx.lineTo(130, 120); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#e74c3c';
+  ctx.fillRect(140, 110, 65, 45);
+  // grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < w; x += 22) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 22) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+}
+drawTestImage(srcCtx, srcC.width, srcC.height);
+
+// Convolution
+function convolve(srcData, w, h, kernel) {
+  const dst = new Uint8ClampedArray(srcData.length);
+  const ks = Math.sqrt(kernel.length) | 0;
+  const half = ks >> 1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let r = 0, g = 0, b = 0;
+      for (let ky = 0; ky < ks; ky++) {
+        for (let kx = 0; kx < ks; kx++) {
+          const sx = Math.min(w-1, Math.max(0, x + kx - half));
+          const sy = Math.min(h-1, Math.max(0, y + ky - half));
+          const idx = (sy * w + sx) * 4;
+          const kv = kernel[ky * ks + kx];
+          r += srcData[idx] * kv;
+          g += srcData[idx+1] * kv;
+          b += srcData[idx+2] * kv;
+        }
+      }
+      const di = (y * w + x) * 4;
+      dst[di] = Math.min(255, Math.max(0, r + 0.5)) | 0;
+      dst[di+1] = Math.min(255, Math.max(0, g + 0.5)) | 0;
+      dst[di+2] = Math.min(255, Math.max(0, b + 0.5)) | 0;
+      dst[di+3] = 255;
+    }
+  }
+  return dst;
+}
+
+function applyKernel() {
+  const inputs = ke.querySelectorAll('input');
+  const k = Array.from(inputs).map(i => parseFloat(i.value) || 0);
+  const dstC = document.getElementById('dst-canvas');
+  const dstCtx = dstC.getContext('2d');
+  const src = srcCtx.getImageData(0, 0, srcC.width, srcC.height);
+  const out = convolve(src.data, srcC.width, srcC.height, k);
+  const di = new ImageData(out, srcC.width, srcC.height);
+  dstCtx.putImageData(di, 0, 0);
+}
+function resetKernel() { loadKernelToEditor([0,0,0,0,1,0,0,0,0], 'Identity'); }
+applyKernel();
+
+// ── Blur demo ──
+const blurSrc = document.getElementById('blur-src');
+const blurSrcCtx = blurSrc.getContext('2d');
+const blurDst = document.getElementById('blur-dst');
+const blurDstCtx = blurDst.getContext('2d');
+drawTestImage(blurSrcCtx, blurSrc.width, blurSrc.height);
+let cleanBlurData = blurSrcCtx.getImageData(0, 0, blurSrc.width, blurSrc.height).data.slice();
+
+function addNoise(src, amount) {
+  const noisy = new Uint8ClampedArray(src);
+  for (let i = 0; i < noisy.length; i += 4) {
+    if (Math.random() < 0.05 * (amount / 10)) {
+      const v = Math.random() < 0.5 ? 0 : 255;
+      noisy[i] = noisy[i+1] = noisy[i+2] = v;
+    } else {
+      const n = (Math.random() - 0.5) * amount * 2;
+      noisy[i] = Math.min(255,Math.max(0,noisy[i]+n));
+      noisy[i+1] = Math.min(255,Math.max(0,noisy[i+1]+n));
+      noisy[i+2] = Math.min(255,Math.max(0,noisy[i+2]+n));
+    }
+  }
+  return noisy;
+}
+
+function buildGaussianKernel(r) {
+  const size = r * 2 + 1;
+  const k = [];
+  const sigma = r / 2.0 || 1;
+  let sum = 0;
+  for (let y = -r; y <= r; y++) {
+    for (let x = -r; x <= r; x++) {
+      const v = Math.exp(-(x*x + y*y) / (2 * sigma * sigma));
+      k.push(v); sum += v;
+    }
+  }
+  return k.map(v => v / sum);
+}
+
+function buildBoxKernel(r) {
+  const size = (r * 2 + 1) ** 2;
+  return new Array(size).fill(1 / size);
+}
+
+function medianFilter(srcData, w, h, r) {
+  const dst = new Uint8ClampedArray(srcData.length);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const neighbors = [];
+      for (let ky = -r; ky <= r; ky++) {
+        for (let kx = -r; kx <= r; kx++) {
+          const sx = Math.min(w-1, Math.max(0, x+kx));
+          const sy = Math.min(h-1, Math.max(0, y+ky));
+          const idx = (sy * w + sx) * 4;
+          neighbors.push(srcData[idx]);
+        }
+      }
+      neighbors.sort((a,b) => a-b);
+      const median = neighbors[neighbors.length >> 1];
+      const di = (y * w + x) * 4;
+      dst[di] = dst[di+1] = dst[di+2] = median;
+      dst[di+3] = 255;
+    }
+  }
+  return dst;
+}
+
+function updateBlurDemo() {
+  const type = document.getElementById('blur-type').value;
+  const r = +document.getElementById('blur-r').value;
+  const noise = +document.getElementById('noise-slider').value;
+  document.getElementById('blur-r-val').textContent = r;
+  document.getElementById('noise-val').textContent = noise;
+
+  const noisyData = addNoise(cleanBlurData, noise);
+  const noisy = new ImageData(new Uint8ClampedArray(noisyData), blurSrc.width, blurSrc.height);
+  blurSrcCtx.putImageData(noisy, 0, 0);
+
+  let result;
+  if (type === 'none') {
+    result = noisyData;
+  } else if (type === 'box') {
+    result = convolve(noisyData, blurSrc.width, blurSrc.height, buildBoxKernel(r));
+  } else if (type === 'gaussian') {
+    result = convolve(noisyData, blurSrc.width, blurSrc.height, buildGaussianKernel(r));
+  } else {
+    result = medianFilter(noisyData, blurSrc.width, blurSrc.height, r);
+  }
+  blurDstCtx.putImageData(new ImageData(new Uint8ClampedArray(result), blurSrc.width, blurSrc.height), 0, 0);
+}
+['blur-type','blur-r','noise-slider'].forEach(id => document.getElementById(id).addEventListener('input', updateBlurDemo));
+updateBlurDemo();
+
+// ── Quiz ──
+const answers = { q1: 'b', q2: 'c', q3: 'b' };
+function checkQuiz() {
+  let score = 0;
+  for (const [q, correct] of Object.entries(answers)) {
+    const sel = document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l => {
+      l.classList.remove('correct','wrong');
+      if (l.querySelector('input').value === correct) l.classList.add('correct');
+      else if (sel && l.querySelector('input').value === sel.value) l.classList.add('wrong');
+    });
+    if (sel && sel.value === correct) score++;
+  }
+  const el = document.getElementById('quiz-result');
+  el.textContent = `Score: ${score}/3 ${score===3?'🎉 Perfect!':score>=2?'👍 Almost!':'📚 Review and try again.'}`;
+  el.style.color = score===3?'#2ecc71':score>=2?'#f39c12':'#e74c3c';
+}
+</script>
+<script src="course.js"></script>
+</body>
+</html>

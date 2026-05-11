@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html">1 · Intro</a></li>
+    <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+    <li><a href="03-filters.html">3 · Filters</a></li>
+    <li><a href="04-edges.html">4 · Edges</a></li>
+    <li><a href="05-features.html" class="active">5 · Features</a></li>
+    <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html">7 · CNNs</a></li>
+    <li><a href="08-detection.html">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 5</h4>
+    <a href="#what-features">What are Features?</a>
+    <a href="#corners">Corners vs Edges</a>
+    <a href="#harris">Harris Detector</a>
+    <a href="#demo-harris">Demo: Harris</a>
+    <a href="#sift">SIFT / ORB</a>
+    <a href="#matching">Feature Matching</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>Feature Detection</h1>
+    <p class="subtitle">Module 5 — Corners, Harris, SIFT, ORB, Matching</p>
+
+    <h2 id="what-features">What are Image Features?</h2>
+    <p>
+      A <strong>feature</strong> is a compact, meaningful piece of information extracted from an image. Good features are <em>repeatable</em> (found at the same location despite viewpoint/lighting changes), <em>distinctive</em> (distinguishable from each other), and <em>efficient</em> (fast to compute).
+    </p>
+    <p>Features enable: image stitching (panoramas), 3D reconstruction, object recognition, AR tracking, and more.</p>
+
+    <h2 id="corners">Corners vs Edges vs Flat Regions</h2>
+    <p>Consider a small image patch and how it moves:</p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin:1rem 0;">
+      <div class="feature-type-card">
+        <canvas class="ftc-canvas" id="ftc-flat" width="120" height="90"></canvas>
+        <strong>Flat region</strong>
+        <p>Looks the same in all directions. No information. Can't localize.</p>
+      </div>
+      <div class="feature-type-card">
+        <canvas class="ftc-canvas" id="ftc-edge" width="120" height="90"></canvas>
+        <strong>Edge</strong>
+        <p>Can localize perpendicular to edge, not along it. Ambiguous.</p>
+      </div>
+      <div class="feature-type-card">
+        <canvas class="ftc-canvas" id="ftc-corner" width="120" height="90"></canvas>
+        <strong>Corner</strong>
+        <p>Looks different in all directions. Uniquely localizable. Best feature!</p>
+      </div>
+    </div>
+
+    <h2 id="harris">Harris Corner Detector</h2>
+    <p>
+      Harris (1988) measures how much intensity changes when you shift a window in any direction, using the <strong>Structure Tensor</strong> M:
+    </p>
+    <div class="formula">M = Σ w(x,y) [ Iₓ²  IₓIᵧ ]</div>
+    <div class="formula" style="margin-top:-0.5rem">        [ IₓIᵧ  Iᵧ² ]</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>M</td><td>structure tensor (2×2 matrix) — summarizes how intensity changes in all directions around a pixel</td></tr>
+        <tr><td>Σ w(x,y)</td><td>weighted sum over a local neighborhood window; w is a Gaussian that gives more weight to the center</td></tr>
+        <tr><td>Iₓ</td><td>horizontal image gradient — how much intensity changes left/right at each pixel</td></tr>
+        <tr><td>Iᵧ</td><td>vertical image gradient — how much intensity changes up/down at each pixel</td></tr>
+        <tr><td>Iₓ²</td><td>squared horizontal gradient — strong in regions with vertical edges</td></tr>
+        <tr><td>Iᵧ²</td><td>squared vertical gradient — strong in regions with horizontal edges</td></tr>
+        <tr><td>IₓIᵧ</td><td>cross term — large when both gradients are strong simultaneously, indicating a corner</td></tr>
+        <tr><td>[ … ]</td><td>2×2 matrix notation; the off-diagonal IₓIᵧ terms capture edge orientation correlation</td></tr>
+      </table>
+    </div>
+    <p>The <strong>Harris response R</strong> is:</p>
+    <div class="formula">R = det(M) - k · trace(M)²  = λ₁λ₂ - k(λ₁+λ₂)²</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>R</td><td>Harris response score — positive = corner, negative = edge, near zero = flat region</td></tr>
+        <tr><td>det(M)</td><td>determinant of M = λ₁ × λ₂ — large when intensity changes strongly in both directions (corner)</td></tr>
+        <tr><td>trace(M)</td><td>trace of M = λ₁ + λ₂ — sum of eigenvalues, measuring total gradient energy in the window</td></tr>
+        <tr><td>k</td><td>sensitivity constant, typically 0.04–0.06 — trades off corner vs edge detection; higher k = fewer corners</td></tr>
+        <tr><td>λ₁, λ₂</td><td>eigenvalues of M — represent the dominant gradient strengths in two orthogonal directions</td></tr>
+        <tr><td>λ₁λ₂</td><td>product of eigenvalues — large only if both directions have strong gradients (true corner)</td></tr>
+        <tr><td>(λ₁+λ₂)²</td><td>squared sum — penalizes flat regions and single edges where one eigenvalue dominates</td></tr>
+      </table>
+    </div>
+    <ul>
+      <li><strong>R ≫ 0</strong>: Corner (both eigenvalues large)</li>
+      <li><strong>R ≈ 0</strong>: Flat region (both eigenvalues small)</li>
+      <li><strong>R ≪ 0</strong>: Edge (one eigenvalue much larger)</li>
+    </ul>
+    <p>k is typically 0.04–0.06. After computing R, apply a threshold and non-maximum suppression to get corner locations.</p>
+
+    <div class="demo-box" id="demo-harris">
+      <h3>Harris Corner Detector — Live</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>k value: <span class="val-display" id="harris-k-val">0.04</span></label>
+            <input type="range" id="harris-k" min="1" max="20" value="4">
+          </div>
+          <div class="control-group">
+            <label>Threshold: <span class="val-display" id="harris-t-val">10000</span></label>
+            <input type="range" id="harris-t" min="1" max="100" value="30">
+          </div>
+          <div class="control-group">
+            <label>Window σ: <span class="val-display" id="harris-s-val">1</span></label>
+            <input type="range" id="harris-s" min="1" max="4" value="1">
+          </div>
+          <div class="control-group">
+            <label>Show</label>
+            <select id="harris-show">
+              <option value="corners">Corners overlay</option>
+              <option value="response">R response map</option>
+            </select>
+          </div>
+        </div>
+        <canvas id="harris-src" width="220" height="165" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+        <canvas id="harris-dst" width="220" height="165" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+      </div>
+      <div style="font-size:0.78rem; color:var(--muted); margin-top:0.5rem;" id="harris-count">Detected corners: ,</div>
+    </div>
+
+    <h2 id="sift">SIFT and ORB</h2>
+    <p>
+      Harris finds corners but they're not <em>scale-invariant</em>. <strong>SIFT</strong> (Scale-Invariant Feature Transform, Lowe 2004) detects keypoints at multiple scales using a Difference-of-Gaussian (DoG) pyramid, then builds a 128-dim descriptor based on gradient orientations. Invariant to scale, rotation, and partial illumination change.
+    </p>
+    <p>
+      <strong>ORB</strong> (Oriented FAST + Rotated BRIEF) is a fast, free alternative to SIFT. It uses FAST for keypoint detection and BRIEF for binary descriptors. ~100× faster than SIFT, suitable for real-time.
+    </p>
+
+    <div style="overflow-x:auto; margin:1rem 0;">
+      <table style="border-collapse:collapse; width:100%; font-size:0.83rem;">
+        <thead>
+          <tr style="background:var(--bg3);">
+            <th style="padding:0.5rem 0.75rem; text-align:left; border:1px solid var(--border);">Detector</th>
+            <th style="padding:0.5rem 0.75rem; border:1px solid var(--border);">Scale-inv.</th>
+            <th style="padding:0.5rem 0.75rem; border:1px solid var(--border);">Rot-inv.</th>
+            <th style="padding:0.5rem 0.75rem; border:1px solid var(--border);">Speed</th>
+            <th style="padding:0.5rem 0.75rem; border:1px solid var(--border);">License</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Harris</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">✗</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">✗</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Fast</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Free</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">SIFT</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">✓</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">✓</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Slow</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Free (post-2020)</td></tr>
+          <tr><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">SURF</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">✓</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">✓</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Medium</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Patented</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">ORB</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">~✓</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border); text-align:center;">✓</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Very fast</td><td style="padding:0.4rem 0.75rem; border:1px solid var(--border);">Free</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="matching">Feature Matching</h2>
+    <p>
+      Once you have descriptors from two images, find correspondences by comparing descriptors. Common strategies:
+    </p>
+    <ul>
+      <li><strong>Brute-force:</strong> Compare every descriptor to every other. O(n²). Use Hamming distance for binary descriptors (ORB), L2 for float descriptors (SIFT).</li>
+      <li><strong>FLANN:</strong> Approximate nearest neighbour — much faster for large descriptor sets.</li>
+      <li><strong>Ratio test (Lowe's):</strong> Only accept match if best match is significantly better than second-best: <code>d1 / d2 &lt; 0.75</code>. Removes ambiguous matches.</li>
+    </ul>
+
+    <div class="demo-box">
+      <h3>Matching Visualizer (Synthetic)</h3>
+      <canvas id="match-canvas" width="480" height="180" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+      <div style="margin-top:0.75rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <button onclick="drawMatches(true)" style="padding:0.4rem 0.9rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.82rem;">Good matches (ratio test)</button>
+        <button onclick="drawMatches(false)" style="padding:0.4rem 0.9rem; background:var(--bg3); color:var(--text); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:0.82rem;">All matches (no filter)</button>
+      </div>
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. In the Harris response, a pixel with R ≪ 0 (large negative) indicates:</p>
+        <label><input type="radio" name="q1" value="a"> A corner</label>
+        <label><input type="radio" name="q1" value="b"> A flat region</label>
+        <label><input type="radio" name="q1" value="c"> An edge</label>
+        <label><input type="radio" name="q1" value="d"> Noise</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. What is the main advantage of ORB over SIFT?</p>
+        <label><input type="radio" name="q2" value="a"> Better accuracy in all conditions</label>
+        <label><input type="radio" name="q2" value="b"> Much faster computation and free to use</label>
+        <label><input type="radio" name="q2" value="c"> Works without grayscale conversion</label>
+        <label><input type="radio" name="q2" value="d"> Detects more keypoints</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. Lowe's ratio test rejects a match when d1/d2 > 0.75. Why?</p>
+        <label><input type="radio" name="q3" value="a"> The match is too fast to compute</label>
+        <label><input type="radio" name="q3" value="b"> There's another descriptor nearly as similar — the match is ambiguous</label>
+        <label><input type="radio" name="q3" value="c"> The descriptor is out of bounds</label>
+        <label><input type="radio" name="q3" value="d"> The keypoint is too close to the image border</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="04-edges.html">← Edges</a>
+      <a href="06-segmentation.html">Next: Segmentation →</a>
+    </div>
+  </main>
+</div>
+
+<style>
+.feature-type-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+  padding:0.75rem; text-align:center; font-size:0.82rem;
+}
+.feature-type-card strong { display:block; margin:0.4rem 0 0.3rem; }
+.feature-type-card p { color:var(--muted); font-size:0.78rem; }
+</style>
+
+<script>
+// Draw flat/edge/corner examples
+function drawFTC(canvasId, type) {
+  const c = document.getElementById(canvasId);
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  ctx.fillStyle = '#ccc'; ctx.fillRect(0,0,w,h);
+  if (type === 'flat') {
+    ctx.fillStyle = '#888'; ctx.fillRect(0,0,w,h);
+  } else if (type === 'edge') {
+    ctx.fillStyle = '#444'; ctx.fillRect(0,0,w/2,h);
+    ctx.fillStyle = '#ccc'; ctx.fillRect(w/2,0,w/2,h);
+  } else {
+    ctx.fillStyle = '#444'; ctx.fillRect(0,0,w/2,h/2);
+    ctx.fillStyle = '#ccc'; ctx.fillRect(w/2,0,w/2,h/2);
+    ctx.fillStyle = '#ccc'; ctx.fillRect(0,h/2,w/2,h/2);
+    ctx.fillStyle = '#444'; ctx.fillRect(w/2,h/2,w/2,h/2);
+  }
+  // highlight center
+  ctx.strokeStyle = '#7c6af7'; ctx.lineWidth = 2;
+  ctx.strokeRect(w/2-15,h/2-12,30,24);
+}
+drawFTC('ftc-flat','flat'); drawFTC('ftc-edge','edge'); drawFTC('ftc-corner','corner');
+
+// Harris demo
+function gaussianBlurData(data, w, h, sigma) {
+  if (!sigma) return new Uint8ClampedArray(data);
+  const r=Math.ceil(sigma*2), size=r*2+1;
+  const k=[]; let sum=0;
+  for(let y=-r;y<=r;y++) for(let x=-r;x<=r;x++){const v=Math.exp(-(x*x+y*y)/(2*sigma*sigma));k.push(v);sum+=v;}
+  const kn=k.map(v=>v/sum);
+  const out=new Uint8ClampedArray(data.length);
+  for(let py=0;py<h;py++) for(let px=0;px<w;px++){
+    let s=0;
+    for(let ky=0;ky<size;ky++) for(let kx=0;kx<size;kx++){
+      const sx=Math.min(w-1,Math.max(0,px+kx-r));
+      const sy=Math.min(h-1,Math.max(0,py+ky-r));
+      s+=data[(sy*w+sx)*4]*kn[ky*size+kx];
+    }
+    const di=(py*w+px)*4; out[di]=out[di+1]=out[di+2]=s|0; out[di+3]=255;
+  }
+  return out;
+}
+
+const harrisSrc = document.getElementById('harris-src');
+const harrisDst = document.getElementById('harris-dst');
+const harrisSrcCtx = harrisSrc.getContext('2d');
+
+function drawHarrisTestImg(ctx,w,h) {
+  ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#aaa'; ctx.fillRect(20,20,60,50); // rect
+  ctx.fillStyle='#ccc';
+  ctx.beginPath(); ctx.moveTo(130,20); ctx.lineTo(175,80); ctx.lineTo(85,80); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#888';
+  ctx.beginPath(); ctx.arc(55,130,30,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#bbb'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(140,100); ctx.lineTo(210,165); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(140,165); ctx.lineTo(210,100); ctx.stroke();
+}
+drawHarrisTestImg(harrisSrcCtx, harrisSrc.width, harrisSrc.height);
+
+function computeHarris(data, w, h, kParam, sigma) {
+  const blurred = gaussianBlurData(data, w, h, sigma);
+  const Ix = new Float32Array(w*h), Iy = new Float32Array(w*h);
+  for(let y=1;y<h-1;y++) for(let x=1;x<w-1;x++){
+    const i=y*w+x;
+    Ix[i]=(blurred[(y*w+(x+1))*4]-blurred[(y*w+(x-1))*4])/2;
+    Iy[i]=(blurred[((y+1)*w+x)*4]-blurred[((y-1)*w+x)*4])/2;
+  }
+  const Ixx=new Float32Array(w*h), Ixy=new Float32Array(w*h), Iyy=new Float32Array(w*h);
+  const wr=3;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    let sxx=0,sxy=0,syy=0;
+    for(let dy=-wr;dy<=wr;dy++) for(let dx=-wr;dx<=wr;dx++){
+      const nx=Math.min(w-1,Math.max(0,x+dx)), ny=Math.min(h-1,Math.max(0,y+dy));
+      const ni=ny*w+nx;
+      const g=Math.exp(-(dx*dx+dy*dy)/(2*wr*wr));
+      sxx+=Ix[ni]*Ix[ni]*g; sxy+=Ix[ni]*Iy[ni]*g; syy+=Iy[ni]*Iy[ni]*g;
+    }
+    const i=y*w+x; Ixx[i]=sxx; Ixy[i]=sxy; Iyy[i]=syy;
+  }
+  const R=new Float32Array(w*h);
+  for(let i=0;i<w*h;i++){
+    R[i]=Ixx[i]*Iyy[i]-Ixy[i]*Ixy[i]-kParam*(Ixx[i]+Iyy[i])*(Ixx[i]+Iyy[i]);
+  }
+  return R;
+}
+
+function updateHarris() {
+  const k = +document.getElementById('harris-k').value / 100;
+  const tRaw = +document.getElementById('harris-t').value;
+  const sigma = +document.getElementById('harris-s').value;
+  const show = document.getElementById('harris-show').value;
+  document.getElementById('harris-k-val').textContent = k.toFixed(2);
+  document.getElementById('harris-t-val').textContent = (tRaw * 1000) | 0;
+  document.getElementById('harris-s-val').textContent = sigma;
+
+  const data = harrisSrcCtx.getImageData(0,0,harrisSrc.width,harrisSrc.height).data;
+  const R = computeHarris(data, harrisSrc.width, harrisSrc.height, k, sigma);
+  const thresh = tRaw * 1000;
+  const maxR = Math.max(...R);
+
+  const dstCtx = harrisDst.getContext('2d');
+  if (show === 'corners') {
+    dstCtx.drawImage(harrisSrc, 0, 0);
+    // NMS + threshold
+    let count=0;
+    for(let y=3;y<harrisSrc.height-3;y++) for(let x=3;x<harrisSrc.width-3;x++){
+      const i=y*harrisSrc.width+x;
+      if(R[i]>thresh) {
+        let isMax=true;
+        for(let dy=-3;dy<=3&&isMax;dy++) for(let dx=-3;dx<=3&&isMax;dx++){
+          if(dx===0&&dy===0) continue;
+          if(R[(y+dy)*harrisSrc.width+(x+dx)]>R[i]) isMax=false;
+        }
+        if(isMax){
+          dstCtx.beginPath(); dstCtx.arc(x,y,4,0,Math.PI*2);
+          dstCtx.fillStyle='rgba(255,220,50,0.9)'; dstCtx.fill();
+          count++;
+        }
+      }
+    }
+    document.getElementById('harris-count').textContent = `Detected corners: ${count}`;
+  } else {
+    const out = new Uint8ClampedArray(harrisSrc.width*harrisSrc.height*4);
+    for(let i=0;i<R.length;i++){
+      const v = Math.min(255, Math.max(0, (R[i]/maxR)*255));
+      out[i*4] = v>0?v:0; out[i*4+1]=0; out[i*4+2]=v<0?(-R[i]/maxR*255)|0:0; out[i*4+3]=255;
+    }
+    dstCtx.putImageData(new ImageData(out,harrisSrc.width,harrisSrc.height),0,0);
+    document.getElementById('harris-count').textContent = 'Response map (red=corner, blue=edge, black=flat)';
+  }
+}
+['harris-k','harris-t','harris-s','harris-show'].forEach(id=>document.getElementById(id).addEventListener('input',updateHarris));
+updateHarris();
+
+// Matching visualizer
+function drawMatches(filtered) {
+  const mc = document.getElementById('match-canvas');
+  const ctx = mc.getContext('2d');
+  const W=mc.width, H=mc.height, half=W/2;
+  ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,W,H);
+  // Draw two "images"
+  ctx.fillStyle='#2a2a4a'; ctx.fillRect(0,0,half-2,H);
+  ctx.fillStyle='#2a2a4a'; ctx.fillRect(half+2,0,half-2,H);
+  ctx.strokeStyle='#333'; ctx.lineWidth=1;
+  ctx.strokeRect(0,0,half-2,H); ctx.strokeRect(half+2,0,half-2,H);
+
+  // Synthetic keypoints (left, right = same + some offset + noise)
+  const pts = [
+    {x:40,y:40},{x:80,y:30},{x:120,y:55},{x:50,y:90},{x:100,y:80},{x:160,y:35},{x:160,y:100},{x:30,y:130}
+  ];
+  // Right image: transform pts + add decoys
+  const trueMatches = pts.map((p,i) => ({
+    left:p,
+    right:{x:p.x+20+(Math.random()*6-3)|0, y:p.y+15+(Math.random()*6-3)|0},
+    score:0.3+Math.random()*0.3
+  }));
+  const decoys = [
+    {left:{x:70,y:120},right:{x:160,y:60},score:0.8},
+    {left:{x:140,y:70},right:{x:50,y:110},score:0.72},
+    {left:{x:35,y:60},right:{x:180,y:120},score:0.7},
+  ];
+
+  const toShow = filtered ? trueMatches : [...trueMatches,...decoys];
+
+  // Draw points
+  function drawDot(x, y, color) {
+    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1; ctx.stroke();
+  }
+  pts.forEach(p=>{drawDot(p.x,p.y,'#7c6af7');});
+  trueMatches.forEach(m=>{drawDot(half+2+m.right.x,m.right.y,'#7c6af7');});
+  decoys.forEach(m=>{drawDot(m.left.x,m.left.y,'#888'); drawDot(half+2+m.right.x,m.right.y,'#888');});
+
+  // Draw match lines
+  toShow.forEach(m=>{
+    const isDecoy = m.score >= 0.7;
+    ctx.beginPath();
+    ctx.moveTo(m.left.x,m.left.y);
+    ctx.lineTo(half+2+m.right.x,m.right.y);
+    ctx.strokeStyle = isDecoy && !filtered ? 'rgba(231,76,60,0.7)' : 'rgba(46,204,113,0.7)';
+    ctx.lineWidth=1.5; ctx.stroke();
+  });
+
+  ctx.fillStyle='#aaa'; ctx.font='11px sans-serif';
+  ctx.fillText('Image A',8,14); ctx.fillText('Image B',half+10,14);
+  ctx.fillStyle=filtered?'#2ecc71':'#f39c12';
+  ctx.fillText(filtered?`${trueMatches.length} good matches (ratio test applied)`:`${toShow.length} matches (${decoys.length} false positives in red)`, 8, H-8);
+}
+drawMatches(true);
+
+// Quiz
+const answers={q1:'c',q2:'b',q3:'b'};
+function checkQuiz(){
+  let score=0;
+  for(const [q,correct] of Object.entries(answers)){
+    const sel=document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l=>{
+      l.classList.remove('correct','wrong');
+      if(l.querySelector('input').value===correct) l.classList.add('correct');
+      else if(sel&&l.querySelector('input').value===sel.value) l.classList.add('wrong');
+    });
+    if(sel&&sel.value===correct) score++;
+  }
+  const el=document.getElementById('quiz-result');
+  el.textContent=`Score: ${score}/3 ${score===3?'🎉 Perfect!':score>=2?'👍 Almost!':'📚 Review and try again.'}`;
+  el.style.color=score===3?'#2ecc71':score>=2?'#f39c12':'#e74c3c';
+}
+</script>
+<script src="course.js"></script>
+</body>
+</html>

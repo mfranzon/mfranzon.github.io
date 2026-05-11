@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html">1 · Intro</a></li>
+    <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+    <li><a href="03-filters.html">3 · Filters</a></li>
+    <li><a href="04-edges.html">4 · Edges</a></li>
+    <li><a href="05-features.html">5 · Features</a></li>
+    <li><a href="06-segmentation.html" class="active">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html">7 · CNNs</a></li>
+    <li><a href="08-detection.html">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 6</h4>
+    <a href="#what-seg">What is Segmentation?</a>
+    <a href="#threshold">Thresholding</a>
+    <a href="#demo-thresh">Demo: Threshold</a>
+    <a href="#kmeans">K-Means Clustering</a>
+    <a href="#demo-kmeans">Demo: K-Means</a>
+    <a href="#types">Semantic vs Instance</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>Image Segmentation</h1>
+    <p class="subtitle">Module 6 — Thresholding, K-Means, Semantic & Instance Segmentation</p>
+
+    <h2 id="what-seg">What is Segmentation?</h2>
+    <p>
+      Segmentation partitions an image into meaningful regions. Instead of bounding boxes, we assign a <em>label to every pixel</em>. This answers "which pixels belong to the sky?" not just "is there sky in this image?".
+    </p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin:1rem 0;">
+      <div class="seg-type-card"><strong>Semantic</strong><br><small>All pixels of a class get the same label. "All cars = red"</small></div>
+      <div class="seg-type-card"><strong>Instance</strong><br><small>Each object instance is separate. "Car 1 = red, Car 2 = blue"</small></div>
+      <div class="seg-type-card"><strong>Panoptic</strong><br><small>Semantic + Instance combined. Full scene understanding.</small></div>
+    </div>
+
+    <h2 id="threshold">Thresholding</h2>
+    <p>
+      The simplest segmentation: pixels below threshold T → background (0), above → foreground (255).
+    </p>
+    <div class="formula">seg(x,y) = 255 if I(x,y) > T, else 0</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>seg(x, y)</td><td>segmentation output at pixel (x, y) — either 255 (foreground/white) or 0 (background/black)</td></tr>
+        <tr><td>I(x, y)</td><td>grayscale intensity of the input pixel at column x, row y — a value from 0 to 255</td></tr>
+        <tr><td>T</td><td>threshold — the decision boundary; pixels brighter than T are labeled foreground</td></tr>
+        <tr><td>255 if … else 0</td><td>binary output — assigns white (255) to foreground pixels and black (0) to background pixels</td></tr>
+        <tr><td>&gt; T</td><td>comparison: if the pixel is strictly brighter than the threshold, classify it as foreground</td></tr>
+      </table>
+    </div>
+    <p>Variants:</p>
+    <ul>
+      <li><strong>Global threshold:</strong> One T for the whole image. Works only with uniform lighting.</li>
+      <li><strong>Adaptive threshold:</strong> T computed locally per region. Better for uneven lighting.</li>
+      <li><strong>Otsu's method:</strong> Automatically finds optimal T by minimizing within-class variance. Works great for bimodal histograms.</li>
+    </ul>
+
+    <div class="demo-box" id="demo-thresh">
+      <h3>Thresholding — Live</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Method</label>
+            <select id="thresh-method">
+              <option value="binary">Binary</option>
+              <option value="inv">Binary inverse</option>
+              <option value="otsu">Otsu (auto)</option>
+              <option value="adaptive">Adaptive (local)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Threshold T: <span class="val-display" id="thresh-val">128</span></label>
+            <input type="range" id="thresh-slider" min="0" max="255" value="128">
+          </div>
+          <div class="control-group">
+            <label>Image</label>
+            <select id="thresh-img">
+              <option value="gradient">Gradient test</option>
+              <option value="circles">Circles</option>
+              <option value="uneven">Uneven light</option>
+            </select>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="thresh-src" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Source (grayscale)</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="thresh-dst" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;" id="thresh-label">Binary</div>
+        </div>
+      </div>
+      <div style="margin-top:0.5rem; font-size:0.78rem; color:var(--accent2);" id="otsu-info"></div>
+    </div>
+
+    <h2 id="kmeans">K-Means Color Clustering</h2>
+    <p>
+      K-Means groups pixels by color similarity. Each pixel is assigned to the nearest of K cluster centers; centers are recomputed as the mean of their members. Repeat until convergence.
+    </p>
+    <p>The result: a color-quantized image where similar colors are merged, revealing dominant color regions — a form of segmentation.</p>
+    <div class="formula">minimize Σₖ Σᵢ∈Cₖ ‖xᵢ − μₖ‖²</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>minimize</td><td>the algorithm's goal — find cluster assignments that make this total as small as possible</td></tr>
+        <tr><td>Σₖ</td><td>outer sum over all K clusters (e.g. k = 1, 2, 3 for K=3 colors)</td></tr>
+        <tr><td>Σᵢ∈Cₖ</td><td>inner sum over all pixels i that belong to cluster k</td></tr>
+        <tr><td>xᵢ</td><td>the color vector of pixel i, e.g. (R, G, B) = (200, 130, 50)</td></tr>
+        <tr><td>μₖ</td><td>centroid of cluster k — the average color of all pixels currently assigned to that cluster</td></tr>
+        <tr><td>xᵢ − μₖ</td><td>difference vector — how far pixel i's color is from its cluster's average color</td></tr>
+        <tr><td>‖…‖²</td><td>squared Euclidean distance — the sum of squared differences across R, G, B channels</td></tr>
+      </table>
+    </div>
+
+    <div class="demo-box" id="demo-kmeans">
+      <h3>K-Means Color Quantization — Live</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>K clusters: <span class="val-display" id="k-val">4</span></label>
+            <input type="range" id="k-slider" min="2" max="8" value="4">
+          </div>
+          <div class="control-group">
+            <label>Iterations: <span class="val-display" id="iter-val">10</span></label>
+            <input type="range" id="iter-slider" min="1" max="30" value="10">
+          </div>
+          <div class="control-group">
+            <label>Image</label>
+            <select id="kmeans-img">
+              <option value="colorful">Colorful shapes</option>
+              <option value="sunset">Sunset gradient</option>
+              <option value="noise">Color noise</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <button onclick="runKmeans()">Run K-Means</button>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="km-src" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Source</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="km-dst" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Quantized</div>
+        </div>
+      </div>
+      <div id="km-palette" style="display:flex; gap:6px; margin-top:0.75rem; flex-wrap:wrap;"></div>
+    </div>
+
+    <h2 id="types">Modern Segmentation Methods</h2>
+    <p>Classical methods struggle with complex scenes. Modern approaches use deep learning:</p>
+    <ul>
+      <li><strong>FCN (2015):</strong> Fully Convolutional Network — first end-to-end semantic segmentation with CNNs.</li>
+      <li><strong>U-Net (2015):</strong> Encoder-decoder with skip connections. Excellent for medical imaging.</li>
+      <li><strong>Mask R-CNN (2017):</strong> Extends Faster R-CNN with a mask branch. Instance segmentation.</li>
+      <li><strong>SAM (2023):</strong> Segment Anything Model by Meta. Promptable segmentation at any granularity.</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>Key insight:</strong> U-Net's skip connections pass fine-grained spatial information from encoder to decoder, solving the resolution loss problem of pure encoder networks.
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. Otsu's thresholding automatically finds T by:</p>
+        <label><input type="radio" name="q1" value="a"> Using the mean pixel value</label>
+        <label><input type="radio" name="q1" value="b"> Minimizing within-class pixel variance</label>
+        <label><input type="radio" name="q1" value="c"> Sampling random pixels</label>
+        <label><input type="radio" name="q1" value="d"> Maximizing entropy</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. You have a photo with a bright lamp in one corner making the background uneven. Which thresholding approach works best?</p>
+        <label><input type="radio" name="q2" value="a"> Global threshold</label>
+        <label><input type="radio" name="q2" value="b"> Adaptive (local) threshold</label>
+        <label><input type="radio" name="q2" value="c"> Binary inverse</label>
+        <label><input type="radio" name="q2" value="d"> K-Means with K=2</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. What distinguishes instance segmentation from semantic segmentation?</p>
+        <label><input type="radio" name="q3" value="a"> Instance seg uses more colors</label>
+        <label><input type="radio" name="q3" value="b"> Semantic seg runs on video, instance on images</label>
+        <label><input type="radio" name="q3" value="c"> Instance seg distinguishes individual objects of the same class; semantic treats all as one label</label>
+        <label><input type="radio" name="q3" value="d"> Instance seg only works on binary images</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="05-features.html">← Features</a>
+      <a href="07-cnn.html">Next: CNNs →</a>
+    </div>
+  </main>
+</div>
+
+<style>
+.seg-type-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+  padding:0.9rem; font-size:0.85rem;
+}
+.seg-type-card small { display:block; color:var(--muted); font-size:0.78rem; margin-top:0.3rem; }
+</style>
+
+<script>
+// ── Test image generators ──
+function makeGradientImg(ctx, w, h) {
+  for (let y=0;y<h;y++) for (let x=0;x<w;x++) {
+    const v = ((x/w)*0.6 + (y/h)*0.4)*255|0;
+    ctx.fillStyle=`rgb(${v},${v},${v})`; ctx.fillRect(x,y,1,1);
+  }
+}
+function makeCirclesImg(ctx, w, h) {
+  ctx.fillStyle='#111'; ctx.fillRect(0,0,w,h);
+  [[60,50,35,180],[150,60,28,220],[80,120,22,160],[160,130,35,200]].forEach(([cx,cy,r,v])=>{
+    ctx.fillStyle=`rgb(${v},${v},${v})`;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+  });
+}
+function makeUnevenImg(ctx, w, h) {
+  const grd = ctx.createRadialGradient(30,30,5,30,30,h);
+  grd.addColorStop(0,'#eee'); grd.addColorStop(1,'#222');
+  ctx.fillStyle=grd; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='rgba(0,0,0,0.6)';
+  [[50,50,25],[120,80,20],[80,130,18],[160,40,15],[170,130,22]].forEach(([cx,cy,r])=>{
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+  });
+}
+
+// ── Thresholding ──
+const threshSrc = document.getElementById('thresh-src');
+const threshDst = document.getElementById('thresh-dst');
+const threshSrcCtx = threshSrc.getContext('2d');
+
+function computeOtsu(data, w, h) {
+  const hist = new Array(256).fill(0);
+  const total = w*h;
+  for (let i=0;i<data.length;i+=4) hist[data[i]]++;
+  let sum=0; for(let i=0;i<256;i++) sum+=i*hist[i];
+  let sumB=0, wB=0, best=0, bestT=0;
+  for(let t=0;t<256;t++){
+    wB+=hist[t]; if(!wB) continue;
+    const wF=total-wB; if(!wF) break;
+    sumB+=t*hist[t];
+    const mB=sumB/wB, mF=(sum-sumB)/wF;
+    const between=wB*wF*(mB-mF)*(mB-mF);
+    if(between>best){best=between; bestT=t;}
+  }
+  return bestT;
+}
+
+function applyAdaptive(data, w, h, blockSize=21) {
+  const out=new Uint8ClampedArray(data.length);
+  const half=(blockSize-1)/2;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    let sum=0,cnt=0;
+    for(let dy=-half;dy<=half;dy++) for(let dx=-half;dx<=half;dx++){
+      const nx=Math.min(w-1,Math.max(0,x+dx|0));
+      const ny=Math.min(h-1,Math.max(0,y+dy|0));
+      sum+=data[(ny*w+nx)*4]; cnt++;
+    }
+    const localT=sum/cnt-5;
+    const v=data[(y*w+x)*4]>localT?255:0;
+    const i=(y*w+x)*4; out[i]=out[i+1]=out[i+2]=v; out[i+3]=255;
+  }
+  return out;
+}
+
+function updateThresh() {
+  const method=document.getElementById('thresh-method').value;
+  const imgType=document.getElementById('thresh-img').value;
+  let t=+document.getElementById('thresh-slider').value;
+  document.getElementById('thresh-val').textContent=t;
+  document.getElementById('thresh-label').textContent=method;
+
+  if(imgType==='gradient') makeGradientImg(threshSrcCtx,threshSrc.width,threshSrc.height);
+  else if(imgType==='circles') makeCirclesImg(threshSrcCtx,threshSrc.width,threshSrc.height);
+  else makeUnevenImg(threshSrcCtx,threshSrc.width,threshSrc.height);
+
+  const src=threshSrcCtx.getImageData(0,0,threshSrc.width,threshSrc.height);
+  const dstCtx=threshDst.getContext('2d');
+
+  if(method==='adaptive'){
+    const out=applyAdaptive(src.data,threshSrc.width,threshSrc.height);
+    dstCtx.putImageData(new ImageData(out,threshSrc.width,threshSrc.height),0,0);
+    document.getElementById('otsu-info').textContent='';
+    return;
+  }
+  if(method==='otsu'){
+    t=computeOtsu(src.data,threshSrc.width,threshSrc.height);
+    document.getElementById('otsu-info').textContent=`Otsu's optimal T = ${t}`;
+  } else {
+    document.getElementById('otsu-info').textContent='';
+  }
+
+  const out=new Uint8ClampedArray(src.data.length);
+  for(let i=0;i<src.data.length;i+=4){
+    const v=method==='inv'?(src.data[i]<t?255:0):(src.data[i]>t?255:0);
+    out[i]=out[i+1]=out[i+2]=v; out[i+3]=255;
+  }
+  dstCtx.putImageData(new ImageData(out,threshSrc.width,threshSrc.height),0,0);
+}
+['thresh-method','thresh-slider','thresh-img'].forEach(id=>document.getElementById(id).addEventListener('input',updateThresh));
+updateThresh();
+
+// ── K-Means ──
+const kmSrc=document.getElementById('km-src');
+const kmDst=document.getElementById('km-dst');
+const kmSrcCtx=kmSrc.getContext('2d');
+
+function makeColorfulImg(ctx,w,h){
+  ctx.fillStyle='#e74c3c'; ctx.fillRect(0,0,w/2,h/2);
+  ctx.fillStyle='#3498db'; ctx.fillRect(w/2,0,w/2,h/2);
+  ctx.fillStyle='#2ecc71'; ctx.fillRect(0,h/2,w/2,h/2);
+  ctx.fillStyle='#f39c12'; ctx.fillRect(w/2,h/2,w/2,h/2);
+  ctx.fillStyle='#9b59b6';
+  ctx.beginPath(); ctx.arc(w/2,h/2,35,0,Math.PI*2); ctx.fill();
+}
+function makeSunsetImg(ctx,w,h){
+  for(let y=0;y<h;y++){
+    const t=y/h;
+    const r=Math.min(255,(1-t)*255+t*30)|0;
+    const g=Math.min(255,(1-t)*120+t*20)|0;
+    const b=Math.min(255,(1-t)*60+t*100)|0;
+    ctx.fillStyle=`rgb(${r},${g},${b})`; ctx.fillRect(0,y,w,1);
+  }
+}
+function makeColorNoiseImg(ctx,w,h){
+  const idata=ctx.createImageData(w,h);
+  for(let i=0;i<idata.data.length;i+=4){
+    idata.data[i]=Math.random()*255|0;
+    idata.data[i+1]=Math.random()*255|0;
+    idata.data[i+2]=Math.random()*255|0;
+    idata.data[i+3]=255;
+  }
+  ctx.putImageData(idata,0,0);
+}
+
+function loadKMeansImg(){
+  const t=document.getElementById('kmeans-img').value;
+  if(t==='colorful') makeColorfulImg(kmSrcCtx,kmSrc.width,kmSrc.height);
+  else if(t==='sunset') makeSunsetImg(kmSrcCtx,kmSrc.width,kmSrc.height);
+  else makeColorNoiseImg(kmSrcCtx,kmSrc.width,kmSrc.height);
+}
+
+function runKmeans(){
+  document.getElementById('k-val').textContent=document.getElementById('k-slider').value;
+  document.getElementById('iter-val').textContent=document.getElementById('iter-slider').value;
+  loadKMeansImg();
+  const K=+document.getElementById('k-slider').value;
+  const iters=+document.getElementById('iter-slider').value;
+  const srcData=kmSrcCtx.getImageData(0,0,kmSrc.width,kmSrc.height).data;
+  const W=kmSrc.width, H=kmSrc.height;
+  const N=W*H;
+
+  // Sample pixels (downsample for speed)
+  const step=4;
+  const pixels=[];
+  for(let i=0;i<N;i+=step){
+    pixels.push([srcData[i*4],srcData[i*4+1],srcData[i*4+2]]);
+  }
+
+  // Init centers randomly
+  let centers=[];
+  for(let k=0;k<K;k++){
+    const p=pixels[Math.floor(Math.random()*pixels.length)];
+    centers.push([...p]);
+  }
+
+  for(let it=0;it<iters;it++){
+    const sums=Array.from({length:K},()=>[0,0,0]);
+    const counts=new Array(K).fill(0);
+    pixels.forEach(p=>{
+      let best=0, bd=Infinity;
+      centers.forEach((c,k)=>{
+        const d=(p[0]-c[0])**2+(p[1]-c[1])**2+(p[2]-c[2])**2;
+        if(d<bd){bd=d;best=k;}
+      });
+      sums[best][0]+=p[0]; sums[best][1]+=p[1]; sums[best][2]+=p[2];
+      counts[best]++;
+    });
+    centers=sums.map((s,k)=>counts[k]?[s[0]/counts[k],s[1]/counts[k],s[2]/counts[k]]:centers[k]);
+  }
+
+  // Assign all pixels
+  const out=new Uint8ClampedArray(N*4);
+  for(let i=0;i<N;i++){
+    const p=[srcData[i*4],srcData[i*4+1],srcData[i*4+2]];
+    let best=0,bd=Infinity;
+    centers.forEach((c,k)=>{const d=(p[0]-c[0])**2+(p[1]-c[1])**2+(p[2]-c[2])**2;if(d<bd){bd=d;best=k;}});
+    const c=centers[best];
+    out[i*4]=c[0]|0; out[i*4+1]=c[1]|0; out[i*4+2]=c[2]|0; out[i*4+3]=255;
+  }
+  kmDst.getContext('2d').putImageData(new ImageData(out,W,H),0,0);
+
+  const palette=document.getElementById('km-palette');
+  palette.innerHTML='<span style="font-size:0.75rem;color:var(--muted);margin-right:4px;">Cluster colors:</span>';
+  centers.forEach(c=>{
+    const d=document.createElement('div');
+    d.style.cssText=`width:28px;height:28px;border-radius:4px;background:rgb(${c[0]|0},${c[1]|0},${c[2]|0});border:1px solid var(--border);`;
+    d.title=`RGB(${c[0]|0},${c[1]|0},${c[2]|0})`;
+    palette.appendChild(d);
+  });
+}
+document.getElementById('kmeans-img').addEventListener('change',()=>{loadKMeansImg();});
+['k-slider','iter-slider'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  document.getElementById('k-val').textContent=document.getElementById('k-slider').value;
+  document.getElementById('iter-val').textContent=document.getElementById('iter-slider').value;
+}));
+loadKMeansImg(); runKmeans();
+
+// Quiz
+const answers={q1:'b',q2:'b',q3:'c'};
+function checkQuiz(){
+  let score=0;
+  for(const [q,correct] of Object.entries(answers)){
+    const sel=document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l=>{
+      l.classList.remove('correct','wrong');
+      if(l.querySelector('input').value===correct) l.classList.add('correct');
+      else if(sel&&l.querySelector('input').value===sel.value) l.classList.add('wrong');
+    });
+    if(sel&&sel.value===correct) score++;
+  }
+  const el=document.getElementById('quiz-result');
+  el.textContent=`Score: ${score}/3 ${score===3?'🎉 Perfect!':score>=2?'👍 Almost!':'📚 Review and try again.'}`;
+  el.style.color=score===3?'#2ecc71':score>=2?'#f39c12':'#e74c3c';
+}
+</script>
+<script src="course.js"></script>
+</body>
+</html>

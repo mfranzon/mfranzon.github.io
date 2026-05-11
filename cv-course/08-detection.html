@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html">1 · Intro</a></li>
+    <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+    <li><a href="03-filters.html">3 · Filters</a></li>
+    <li><a href="04-edges.html">4 · Edges</a></li>
+    <li><a href="05-features.html">5 · Features</a></li>
+    <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html">7 · CNNs</a></li>
+    <li><a href="08-detection.html" class="active">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 8</h4>
+    <a href="#what-det">What is Detection?</a>
+    <a href="#sliding">Sliding Window</a>
+    <a href="#iou">IoU Metric</a>
+    <a href="#demo-iou">Demo: IoU</a>
+    <a href="#anchors">Anchor Boxes</a>
+    <a href="#nms">NMS</a>
+    <a href="#yolo">YOLO Intuition</a>
+    <a href="#demo-det">Demo: Detection</a>
+    <a href="#evolution">Model Evolution</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>Object Detection</h1>
+    <p class="subtitle">Module 8 — Sliding Windows, Anchors, IoU, NMS, YOLO</p>
+
+    <h2 id="what-det">What is Object Detection?</h2>
+    <p>
+      Classification answers "what is in the image?". Detection answers "what is where?" — for each object instance, output a <strong>bounding box</strong> (x, y, w, h) and a <strong>class label</strong> with a confidence score.
+    </p>
+    <p>Detection is harder: images may contain multiple objects of different sizes; objects may overlap; the number of objects is variable.</p>
+
+    <h2 id="sliding">Sliding Window Approach</h2>
+    <p>
+      The naive approach: slide a window across the image at multiple scales and aspect ratios, run a classifier on each window. If confidence is high, declare a detection.
+    </p>
+    <p><strong>Problems:</strong> Exponentially many windows (exhaustive), very slow (~10⁴–10⁵ windows per image), no end-to-end training.</p>
+    <p>This was replaced by region proposal + CNN (R-CNN family) and then one-stage detectors (YOLO, SSD).</p>
+
+    <h2 id="iou">Intersection over Union (IoU)</h2>
+    <p>How do we measure if a predicted box matches a ground truth box? IoU is the ratio of overlap to total area:</p>
+    <div class="formula">IoU = Area(Predicted ∩ Ground Truth) / Area(Predicted ∪ Ground Truth)</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>IoU</td><td>Intersection over Union — a score from 0 (no overlap) to 1.0 (perfect match)</td></tr>
+        <tr><td>Predicted</td><td>the bounding box your model output — defined by (x, y, width, height)</td></tr>
+        <tr><td>Ground Truth</td><td>the manually labeled correct box for the object</td></tr>
+        <tr><td>∩ (intersection)</td><td>the overlapping region between the two boxes — the area both boxes share</td></tr>
+        <tr><td>∪ (union)</td><td>the total area covered by either box — intersection plus the non-overlapping parts</td></tr>
+        <tr><td>Area(…)</td><td>pixel area of the region, computed as width × height of the rectangle</td></tr>
+        <tr><td>IoU ≥ 0.5</td><td>common threshold for counting a detection as a "true positive" in evaluation metrics</td></tr>
+      </table>
+    </div>
+    <ul>
+      <li><strong>IoU = 1.0:</strong> Perfect match</li>
+      <li><strong>IoU ≥ 0.5:</strong> Commonly used threshold for "correct" detection</li>
+      <li><strong>IoU = 0:</strong> No overlap</li>
+    </ul>
+
+    <div class="demo-box" id="demo-iou">
+      <h3>IoU Calculator — Drag the boxes</h3>
+      <canvas id="iou-canvas" width="420" height="260" style="border-radius:6px; border:1px solid var(--border); cursor:move;"></canvas>
+      <div style="display:flex; gap:1.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+        <div><span style="color:#4fc3f7; font-weight:700;">■</span> Predicted box</div>
+        <div><span style="color:#2ecc71; font-weight:700;">■</span> Ground truth box</div>
+        <div style="font-size:1.1rem; font-weight:700;">IoU = <span id="iou-val" style="color:var(--accent2);">,</span></div>
+      </div>
+      <div style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">Click and drag either box to move it.</div>
+    </div>
+
+    <h2 id="anchors">Anchor Boxes</h2>
+    <p>
+      Instead of sliding arbitrary windows, modern detectors pre-define a set of <strong>anchor boxes</strong> at each grid cell — boxes with different aspect ratios and scales. The network predicts <em>offsets</em> from these anchors rather than absolute coordinates. This drastically reduces the search space.
+    </p>
+    <div class="callout tip">
+      <strong>Why anchors work:</strong> Natural objects (cars, people, faces) have characteristic aspect ratios. Anchors initialized to these ratios give the network a good starting point — it only needs to predict small adjustments.
+    </div>
+
+    <h2 id="nms">Non-Maximum Suppression (NMS)</h2>
+    <p>
+      A detection network typically produces hundreds of overlapping bounding boxes, all pointing to the same object. NMS keeps only the best:
+    </p>
+    <ol style="padding-left:1.5rem; color:#c5cfe0;">
+      <li>Sort all boxes by confidence score (highest first)</li>
+      <li>Keep the top box</li>
+      <li>Remove all remaining boxes with IoU ≥ threshold (e.g. 0.5) vs. the kept box</li>
+      <li>Repeat for next surviving box</li>
+    </ol>
+
+    <h2 id="yolo">YOLO Intuition</h2>
+    <p>
+      <strong>YOLO</strong> (You Only Look Once, 2016) made real-time detection practical. Its core idea: divide the image into an S×S grid. Each cell predicts B bounding boxes and C class probabilities — in a <em>single forward pass</em>.
+    </p>
+    <div class="formula">Output tensor: S × S × (B × 5 + C)</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>S × S</td><td>spatial grid — the image is divided into S rows and S columns of cells; in YOLO v1, S=7</td></tr>
+        <tr><td>B</td><td>number of bounding boxes each grid cell predicts; YOLO v1 uses B=2</td></tr>
+        <tr><td>5</td><td>values per box: x offset, y offset, width, height, and objectness confidence score</td></tr>
+        <tr><td>B × 5</td><td>all bounding box predictions for one cell, e.g. 2 × 5 = 10 values</td></tr>
+        <tr><td>C</td><td>number of object classes the model can recognize, e.g. C=20 for VOC dataset (car, dog, person...)</td></tr>
+        <tr><td>B × 5 + C</td><td>total values per grid cell — box predictions plus class probabilities, e.g. 10 + 20 = 30</td></tr>
+        <tr><td>S × S × (B×5+C)</td><td>full output volume shape, e.g. 7 × 7 × 30 — one 3-D tensor from a single forward pass</td></tr>
+      </table>
+    </div>
+    <p style="font-size:0.82rem;color:var(--muted);">Each box: (x, y, w, h, confidence). For YOLO v1: S=7, B=2, C=20 → output 7×7×30.</p>
+    <p>
+      YOLO trades slightly lower accuracy for enormous speed (45 fps on GPU at launch). Subsequent versions (v3–v10) closed the accuracy gap.
+    </p>
+
+    <div class="demo-box" id="demo-det">
+      <h3>Object Detection Simulator</h3>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">Simulates a YOLO-style output: grid cells + predicted boxes + NMS.</p>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Grid size S: <span class="val-display" id="grid-val">7</span></label>
+            <input type="range" id="grid-slider" min="3" max="13" value="7">
+          </div>
+          <div class="control-group">
+            <label>Conf threshold: <span class="val-display" id="conf-val">0.4</span></label>
+            <input type="range" id="conf-slider" min="1" max="9" value="4">
+          </div>
+          <div class="control-group">
+            <label>NMS IoU thresh: <span class="val-display" id="nms-val">0.5</span></label>
+            <input type="range" id="nms-slider" min="1" max="9" value="5">
+          </div>
+          <div class="control-group">
+            <label>Show</label>
+            <select id="det-show">
+              <option value="both">Grid + final detections</option>
+              <option value="grid">Grid only</option>
+              <option value="pre-nms">Pre-NMS boxes</option>
+              <option value="final">Final detections only</option>
+            </select>
+          </div>
+        </div>
+        <canvas id="det-canvas" width="320" height="240" style="border-radius:6px; border:1px solid var(--border);"></canvas>
+      </div>
+      <div id="det-info" style="font-size:0.78rem; color:var(--muted); margin-top:0.5rem;"></div>
+    </div>
+
+    <h2 id="evolution">Detector Evolution</h2>
+    <div style="overflow-x:auto;">
+      <table style="border-collapse:collapse;width:100%;font-size:0.82rem;">
+        <thead><tr style="background:var(--bg3);">
+          <th style="padding:0.5rem 0.75rem;text-align:left;border:1px solid var(--border);">Model</th>
+          <th style="padding:0.5rem 0.75rem;border:1px solid var(--border);">Year</th>
+          <th style="padding:0.5rem 0.75rem;border:1px solid var(--border);">Type</th>
+          <th style="padding:0.5rem 0.75rem;border:1px solid var(--border);">Key idea</th>
+          <th style="padding:0.5rem 0.75rem;border:1px solid var(--border);">Speed</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">R-CNN</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2014</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">2-stage</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Region proposals + CNN per region</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">~47s/img</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Fast R-CNN</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2015</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">2-stage</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Shared conv features, RoI pooling</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">~0.3s/img</td></tr>
+          <tr><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Faster R-CNN</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2015</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">2-stage</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">RPN replaces selective search</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">5 fps</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">YOLO v1</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2016</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">1-stage</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Single pass, grid prediction</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">45 fps</td></tr>
+          <tr><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">SSD</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2016</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">1-stage</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Multi-scale feature maps + anchors</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">59 fps</td></tr>
+          <tr style="background:var(--bg3);"><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">YOLOv8</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2023</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">1-stage</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Anchor-free, C2f blocks</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Real-time</td></tr>
+          <tr><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">DETR</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);text-align:center;">2020</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Transformer</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">End-to-end, no anchors/NMS</td><td style="padding:0.4rem 0.75rem;border:1px solid var(--border);">Medium</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. Two boxes have area 100 each and their intersection area is 40. What is their IoU?</p>
+        <label><input type="radio" name="q1" value="a"> 0.25</label>
+        <label><input type="radio" name="q1" value="b"> 0.40</label>
+        <label><input type="radio" name="q1" value="c"> 0.50</label>
+        <label><input type="radio" name="q1" value="d"> 0.20</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. What does NMS (Non-Maximum Suppression) solve?</p>
+        <label><input type="radio" name="q2" value="a"> Class imbalance between foreground and background</label>
+        <label><input type="radio" name="q2" value="b"> Multiple overlapping box predictions for the same object</label>
+        <label><input type="radio" name="q2" value="c"> Anchor box misalignment</label>
+        <label><input type="radio" name="q2" value="d"> Low confidence predictions</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. YOLO v1 uses a 7×7 grid, 2 boxes per cell, 20 classes. What is the output tensor shape?</p>
+        <label><input type="radio" name="q3" value="a"> 7×7×20</label>
+        <label><input type="radio" name="q3" value="b"> 7×7×25</label>
+        <label><input type="radio" name="q3" value="c"> 7×7×30</label>
+        <label><input type="radio" name="q3" value="d"> 7×7×40</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="07-cnn.html">← CNNs</a>
+      <a href="index.html">← Back to Home</a>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── IoU drag demo ──
+const iouC = document.getElementById('iou-canvas');
+const iouCtx = iouC.getContext('2d');
+let boxA = {x:60, y:60, w:140, h:110}; // predicted (blue)
+let boxB = {x:140, y:100, w:140, h:110}; // ground truth (green)
+let dragging = null, dragOffX=0, dragOffY=0;
+
+function computeIoU(a, b) {
+  const ix1=Math.max(a.x,b.x), iy1=Math.max(a.y,b.y);
+  const ix2=Math.min(a.x+a.w,b.x+b.w), iy2=Math.min(a.y+a.h,b.y+b.h);
+  const iw=Math.max(0,ix2-ix1), ih=Math.max(0,iy2-iy1);
+  const inter=iw*ih;
+  const union=a.w*a.h+b.w*b.h-inter;
+  return union>0?inter/union:0;
+}
+
+function drawIoU() {
+  iouCtx.clearRect(0,0,iouC.width,iouC.height);
+  iouCtx.fillStyle='#161b27'; iouCtx.fillRect(0,0,iouC.width,iouC.height);
+  // Intersection fill
+  const ix1=Math.max(boxA.x,boxB.x), iy1=Math.max(boxA.y,boxB.y);
+  const iw=Math.max(0,Math.min(boxA.x+boxA.w,boxB.x+boxB.w)-ix1);
+  const ih=Math.max(0,Math.min(boxA.y+boxA.h,boxB.y+boxB.h)-iy1);
+  if(iw>0&&ih>0){
+    iouCtx.fillStyle='rgba(255,200,50,0.35)'; iouCtx.fillRect(ix1,iy1,iw,ih);
+  }
+  // Box A (predicted)
+  iouCtx.strokeStyle='#4fc3f7'; iouCtx.lineWidth=2.5;
+  iouCtx.strokeRect(boxA.x,boxA.y,boxA.w,boxA.h);
+  iouCtx.fillStyle='rgba(79,195,247,0.08)'; iouCtx.fillRect(boxA.x,boxA.y,boxA.w,boxA.h);
+  iouCtx.fillStyle='#4fc3f7'; iouCtx.font='bold 11px sans-serif'; iouCtx.textAlign='left';
+  iouCtx.fillText('Predicted',boxA.x+4,boxA.y+14);
+  // Box B (GT)
+  iouCtx.strokeStyle='#2ecc71'; iouCtx.lineWidth=2.5;
+  iouCtx.strokeRect(boxB.x,boxB.y,boxB.w,boxB.h);
+  iouCtx.fillStyle='rgba(46,204,113,0.08)'; iouCtx.fillRect(boxB.x,boxB.y,boxB.w,boxB.h);
+  iouCtx.fillStyle='#2ecc71'; iouCtx.textAlign='left';
+  iouCtx.fillText('Ground Truth',boxB.x+4,boxB.y+14);
+  // Intersection label
+  if(iw>20&&ih>20){
+    iouCtx.fillStyle='#f39c12'; iouCtx.textAlign='center';
+    iouCtx.fillText('∩',ix1+iw/2,iy1+ih/2+4);
+  }
+  const iou=computeIoU(boxA,boxB);
+  document.getElementById('iou-val').textContent=iou.toFixed(3);
+  document.getElementById('iou-val').style.color=iou>=0.5?'#2ecc71':iou>=0.3?'#f39c12':'#e74c3c';
+}
+drawIoU();
+
+function hitBox(box,x,y){return x>=box.x&&x<=box.x+box.w&&y>=box.y&&y<=box.y+box.h;}
+iouC.addEventListener('mousedown',e=>{
+  const r=iouC.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(iouC.width/r.width);
+  const my=(e.clientY-r.top)*(iouC.height/r.height);
+  if(hitBox(boxA,mx,my)){dragging='A';dragOffX=mx-boxA.x;dragOffY=my-boxA.y;}
+  else if(hitBox(boxB,mx,my)){dragging='B';dragOffX=mx-boxB.x;dragOffY=my-boxB.y;}
+});
+iouC.addEventListener('mousemove',e=>{
+  if(!dragging) return;
+  const r=iouC.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(iouC.width/r.width);
+  const my=(e.clientY-r.top)*(iouC.height/r.height);
+  if(dragging==='A'){boxA.x=Math.max(0,Math.min(iouC.width-boxA.w,mx-dragOffX));boxA.y=Math.max(0,Math.min(iouC.height-boxA.h,my-dragOffY));}
+  else{boxB.x=Math.max(0,Math.min(iouC.width-boxB.w,mx-dragOffX));boxB.y=Math.max(0,Math.min(iouC.height-boxB.h,my-dragOffY));}
+  drawIoU();
+});
+iouC.addEventListener('mouseup',()=>dragging=null);
+iouC.addEventListener('mouseleave',()=>dragging=null);
+
+// ── Detection simulator ──
+const detColors=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6'];
+const objLabels=['cat','dog','car','person','bird'];
+
+// Synthetic "objects" in the scene
+const trueObjects=[
+  {cx:0.25,cy:0.35,w:0.3,h:0.45,cls:0},
+  {cx:0.72,cy:0.28,w:0.25,h:0.35,cls:1},
+  {cx:0.55,cy:0.72,w:0.4,h:0.35,cls:2},
+];
+
+function getDetCanvas(){return document.getElementById('det-canvas');}
+
+function runDetSimulator(){
+  const S=+document.getElementById('grid-slider').value;
+  const confT=+document.getElementById('conf-slider').value/10;
+  const nmsT=+document.getElementById('nms-slider').value/10;
+  const show=document.getElementById('det-show').value;
+  document.getElementById('grid-val').textContent=S;
+  document.getElementById('conf-val').textContent=confT.toFixed(1);
+  document.getElementById('nms-val').textContent=nmsT.toFixed(1);
+
+  const c=getDetCanvas(); const ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,0,W,H);
+
+  // Draw scene objects
+  trueObjects.forEach(obj=>{
+    const bx=(obj.cx-obj.w/2)*W, by=(obj.cy-obj.h/2)*H, bw=obj.w*W, bh=obj.h*H;
+    ctx.fillStyle=detColors[obj.cls]+'33'; ctx.fillRect(bx,by,bw,bh);
+    ctx.strokeStyle=detColors[obj.cls]+'66'; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,bh);
+    ctx.fillStyle=detColors[obj.cls]; ctx.font='10px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(objLabels[obj.cls],bx+3,by+12);
+  });
+
+  // Grid
+  if(show==='both'||show==='grid'){
+    ctx.strokeStyle='rgba(124,106,247,0.25)'; ctx.lineWidth=0.5;
+    for(let i=0;i<=S;i++){
+      ctx.beginPath(); ctx.moveTo(i/S*W,0); ctx.lineTo(i/S*W,H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,i/S*H); ctx.lineTo(W,i/S*H); ctx.stroke();
+    }
+  }
+
+  // Generate predicted boxes
+  const allBoxes=[];
+  trueObjects.forEach(obj=>{
+    const numPreds=3+Math.floor(Math.random()*4);
+    for(let p=0;p<numPreds;p++){
+      const noise=0.05;
+      const px=obj.cx+(Math.random()-0.5)*noise*2;
+      const py=obj.cy+(Math.random()-0.5)*noise*2;
+      const pw=obj.w*(0.85+Math.random()*0.3);
+      const ph=obj.h*(0.85+Math.random()*0.3);
+      const conf=0.35+Math.random()*0.6;
+      allBoxes.push({cx:px,cy:py,w:pw,h:ph,conf,cls:obj.cls});
+    }
+  });
+
+  // Pre-NMS visualization
+  if(show==='pre-nms'){
+    allBoxes.filter(b=>b.conf>=confT).forEach(b=>{
+      const bx=(b.cx-b.w/2)*W, by=(b.cy-b.h/2)*H, bw=b.w*W, bh=b.h*H;
+      ctx.strokeStyle=detColors[b.cls]+'aa'; ctx.lineWidth=1;
+      ctx.strokeRect(bx,by,bw,bh);
+    });
+    document.getElementById('det-info').textContent=`${allBoxes.filter(b=>b.conf>=confT).length} boxes before NMS`;
+    return;
+  }
+
+  // NMS
+  function boxIoU(a,b){
+    const ax1=(a.cx-a.w/2),ay1=(a.cy-a.h/2),ax2=(a.cx+a.w/2),ay2=(a.cy+a.h/2);
+    const bx1=(b.cx-b.w/2),by1=(b.cy-b.h/2),bx2=(b.cx+b.w/2),by2=(b.cy+b.h/2);
+    const iw=Math.max(0,Math.min(ax2,bx2)-Math.max(ax1,bx1));
+    const ih=Math.max(0,Math.min(ay2,by2)-Math.max(ay1,by1));
+    const inter=iw*ih;
+    return inter/(a.w*a.h+b.w*b.h-inter);
+  }
+
+  let boxes=allBoxes.filter(b=>b.conf>=confT).sort((a,b)=>b.conf-a.conf);
+  const kept=[];
+  while(boxes.length){
+    const top=boxes.shift(); kept.push(top);
+    boxes=boxes.filter(b=>boxIoU(top,b)<nmsT||b.cls!==top.cls);
+  }
+
+  // Draw final detections
+  if(show==='final'||show==='both'){
+    kept.forEach(b=>{
+      const bx=(b.cx-b.w/2)*W, by=(b.cy-b.h/2)*H, bw=b.w*W, bh=b.h*H;
+      ctx.strokeStyle=detColors[b.cls]; ctx.lineWidth=2;
+      ctx.strokeRect(bx,by,bw,bh);
+      ctx.fillStyle=detColors[b.cls]; ctx.font='bold 10px sans-serif'; ctx.textAlign='left';
+      const label=`${objLabels[b.cls]} ${(b.conf*100)|0}%`;
+      const tw=ctx.measureText(label).width;
+      ctx.fillRect(bx,by-14,tw+6,14);
+      ctx.fillStyle='#fff'; ctx.fillText(label,bx+3,by-3);
+    });
+  }
+
+  document.getElementById('det-info').textContent=`${kept.length} detections after NMS (from ${allBoxes.filter(b=>b.conf>=confT).length} candidates)`;
+}
+['grid-slider','conf-slider','nms-slider','det-show'].forEach(id=>document.getElementById(id).addEventListener('input',runDetSimulator));
+runDetSimulator();
+
+// Quiz
+const answers={q1:'a',q2:'b',q3:'c'};
+function checkQuiz(){
+  let score=0;
+  for(const [q,correct] of Object.entries(answers)){
+    const sel=document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l=>{
+      l.classList.remove('correct','wrong');
+      if(l.querySelector('input').value===correct) l.classList.add('correct');
+      else if(sel&&l.querySelector('input').value===sel.value) l.classList.add('wrong');
+    });
+    if(sel&&sel.value===correct) score++;
+  }
+  const el=document.getElementById('quiz-result');
+  el.textContent=`Score: ${score}/3 ${score===3?'🎉 Perfect!':score>=2?'👍 Almost!':'📚 Review and try again.'}`;
+  el.style.color=score===3?'#2ecc71':score>=2?'#f39c12':'#e74c3c';
+}
+
+// IoU answer explanation:
+// Area A=100, Area B=100, Intersection=40
+// Union = 100+100-40 = 160, IoU = 40/160 = 0.25
+</script>
+<script src="course.js"></script>
+</body>
+</html>

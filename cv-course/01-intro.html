@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html" class="active">1 · Intro</a></li>
+    <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+    <li><a href="03-filters.html">3 · Filters</a></li>
+    <li><a href="04-edges.html">4 · Edges</a></li>
+    <li><a href="05-features.html">5 · Features</a></li>
+    <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html">7 · CNNs</a></li>
+    <li><a href="08-detection.html">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 1</h4>
+    <a href="#what">What is CV?</a>
+    <a href="#history">Brief History</a>
+    <a href="#pipeline">Image Pipeline</a>
+    <a href="#camera">How Cameras Work</a>
+    <a href="#applications">Applications</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>What is Computer Vision?</h1>
+    <p class="subtitle">Module 1 — Conceptual Foundation</p>
+
+    <h2 id="what">The Core Question</h2>
+    <p>
+      Computer vision is the field of study that enables machines to interpret and understand visual information from the world — images, videos, and 3D scans. The goal is to replicate and eventually surpass human visual perception using algorithms.
+    </p>
+    <p>
+      When you look at a photo of a cat, your brain instantly recognizes the animal, its pose, the background, and even its mood. A computer sees only a grid of numbers. Computer vision is the bridge between those numbers and meaningful understanding.
+    </p>
+
+    <div class="callout tip">
+      <strong>Key insight:</strong> An image is just a matrix of numbers. A 640×480 grayscale image is a 640×480 matrix of integers 0–255. Color images add a third dimension (3 channels: R, G, B).
+    </div>
+
+    <h2 id="history">Brief History</h2>
+    <ul>
+      <li><strong>1966 — MIT Summer Vision Project:</strong> Marvin Minsky assigned "solving computer vision" as a summer project. It's still not fully solved.</li>
+      <li><strong>1970s–80s:</strong> Edge detection, optical flow (Lucas-Kanade), Hough transform, stereo vision.</li>
+      <li><strong>1990s:</strong> Statistical methods, face detection (Viola-Jones 2001), SIFT features.</li>
+      <li><strong>2012 — AlexNet:</strong> Deep CNNs trained on GPUs win ImageNet by a massive margin. The deep learning era begins.</li>
+      <li><strong>2017–now:</strong> Transformers (ViT), diffusion models, CLIP, SAM — vision meets language.</li>
+    </ul>
+
+    <h2 id="pipeline">The Image Processing Pipeline</h2>
+    <p>Most computer vision systems follow a pipeline:</p>
+
+    <div class="demo-box">
+      <h3>Interactive Pipeline</h3>
+      <div style="display:flex; gap:0; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:0.5rem;">
+        <div class="pipe-step" data-info="A real-world scene is captured by a sensor (camera, lidar, radar). Lighting, lens quality, and sensor noise all affect the image.">📷 Capture</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step" data-info="Raw sensor data (often Bayer pattern for cameras) is converted to a viewable image. Color correction, white balance, demosaicing.">🔧 Pre-process</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step" data-info="Extract meaningful information: edges, corners, blobs, textures, color histograms. These are hand-crafted or learned features.">🔍 Features</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step" data-info="A model (classical or neural) maps features to predictions: 'this is a dog', or 'there is a pedestrian at position (x,y)'.">🧠 Model</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step" data-info="The result is used: display bounding boxes, trigger an alert, guide a robot, generate a caption.">✅ Output</div>
+      </div>
+      <div id="pipe-info" class="callout" style="margin-top:1rem; min-height:48px;">
+        Click any step to learn more.
+      </div>
+    </div>
+
+    <h2 id="camera">How Digital Cameras Work</h2>
+    <p>
+      A camera sensor is a 2D grid of photosensitive cells (pixels). Each cell measures the intensity of light hitting it. Most consumer cameras use a <strong>Bayer filter</strong> — a mosaic of R, G, G, B filters (twice as many green, matching human eye sensitivity).
+    </p>
+
+    <div class="demo-box">
+      <h3>Bayer Pattern Visualizer</h3>
+      <canvas id="bayerCanvas" width="320" height="320"></canvas>
+      <p style="font-size:0.8rem; color:var(--muted); margin-top:0.5rem;">Each colored square is one sensor cell. The camera "demosaics" these into full RGB pixels.</p>
+    </div>
+
+    <div class="formula">I(x, y) = ∫∫ L(x, y, λ) · R(λ) dλ</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>I(x, y)</td><td>pixel intensity at column x, row y — a single number (0 = black, 255 = white)</td></tr>
+        <tr><td>L(x, y, λ)</td><td>radiance — how much light of wavelength λ arrives at pixel position (x, y)</td></tr>
+        <tr><td>λ (lambda)</td><td>wavelength of light, e.g. 450 nm = blue, 550 nm = green, 650 nm = red</td></tr>
+        <tr><td>R(λ)</td><td>sensor spectral response — how sensitive the sensor is to each wavelength</td></tr>
+        <tr><td>· (dot)</td><td>multiplication — light intensity times sensor sensitivity at that wavelength</td></tr>
+        <tr><td>∫∫ … dλ</td><td>integration over all visible wavelengths — summing contributions from every color of light</td></tr>
+        <tr><td>dλ</td><td>infinitesimally small wavelength step (the "slice" being summed in the integral)</td></tr>
+      </table>
+    </div>
+    <p style="font-size:0.82rem; color:var(--muted);">A pixel value is the integral of the light spectrum L weighted by the sensor's response curve R.</p>
+
+    <h2 id="applications">Real-World Applications</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1rem; margin:1rem 0;">
+      <div class="app-card">🚗 Self-driving cars<br><small>Pedestrian & lane detection</small></div>
+      <div class="app-card">🏥 Medical imaging<br><small>Tumor detection, X-rays</small></div>
+      <div class="app-card">📱 Face ID<br><small>3D face recognition</small></div>
+      <div class="app-card">🛒 Retail<br><small>Cashier-less checkout</small></div>
+      <div class="app-card">🌾 Agriculture<br><small>Crop health, drone scouting</small></div>
+      <div class="app-card">🎮 AR/VR<br><small>Pose estimation, depth sensing</small></div>
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. A 256×256 RGB image contains how many numbers?</p>
+        <label><input type="radio" name="q1" value="a"> 65,536</label>
+        <label><input type="radio" name="q1" value="b"> 196,608</label>
+        <label><input type="radio" name="q1" value="c"> 786,432</label>
+        <label><input type="radio" name="q1" value="d"> 262,144</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. Why does the Bayer filter use twice as many green cells as red or blue?</p>
+        <label><input type="radio" name="q2" value="a"> Green is the primary color of light</label>
+        <label><input type="radio" name="q2" value="b"> The human eye is most sensitive to green wavelengths</label>
+        <label><input type="radio" name="q2" value="c"> Green pixels are cheaper to manufacture</label>
+        <label><input type="radio" name="q2" value="d"> Green has the highest frequency in the visible spectrum</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. What was significant about AlexNet in 2012?</p>
+        <label><input type="radio" name="q3" value="a"> It was the first neural network ever built</label>
+        <label><input type="radio" name="q3" value="b"> It solved computer vision completely</label>
+        <label><input type="radio" name="q3" value="c"> A deep CNN trained on GPUs dramatically outperformed classical methods on ImageNet</label>
+        <label><input type="radio" name="q3" value="d"> It introduced the concept of convolution</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.88rem;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="index.html">← Home</a>
+      <a href="02-image-basics.html">Next: Image Basics →</a>
+    </div>
+  </main>
+</div>
+
+<style>
+.pipe-step {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.6rem 1rem; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.15s; font-weight: 600;
+}
+.pipe-step:hover, .pipe-step.active { border-color: var(--accent); color: var(--accent); }
+.pipe-arrow { font-size: 1.2rem; color: var(--muted); padding: 0 0.25rem; }
+.app-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.9rem 1rem; font-size: 0.88rem; font-weight: 600;
+}
+.app-card small { display:block; color:var(--muted); font-weight:400; margin-top:0.2rem; }
+</style>
+
+<script>
+// Pipeline interaction
+document.querySelectorAll('.pipe-step').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.pipe-step').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('pipe-info').textContent = el.dataset.info;
+  });
+});
+
+// Bayer pattern canvas
+const bc = document.getElementById('bayerCanvas');
+const bctx = bc.getContext('2d');
+const size = 16, cols = bc.width / size, rows = bc.height / size;
+for (let r = 0; r < rows; r++) {
+  for (let c = 0; c < cols; c++) {
+    const isEvenRow = r % 2 === 0, isEvenCol = c % 2 === 0;
+    if (isEvenRow && isEvenCol) bctx.fillStyle = '#c0392b';
+    else if (!isEvenRow && !isEvenCol) bctx.fillStyle = '#2980b9';
+    else bctx.fillStyle = '#27ae60';
+    bctx.fillRect(c * size, r * size, size - 1, size - 1);
+  }
+}
+
+// Quiz
+const answers = { q1: 'b', q2: 'b', q3: 'c' };
+function checkQuiz() {
+  let score = 0;
+  for (const [q, correct] of Object.entries(answers)) {
+    const sel = document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l => {
+      l.classList.remove('correct', 'wrong');
+      const val = l.querySelector('input').value;
+      if (val === correct) l.classList.add('correct');
+      else if (sel && val === sel.value) l.classList.add('wrong');
+    });
+    if (sel && sel.value === correct) score++;
+  }
+  const el = document.getElementById('quiz-result');
+  el.textContent = `Score: ${score} / 3 ${score === 3 ? '🎉 Perfect!' : score >= 2 ? '👍 Almost!' : '📚 Review and try again.'}`;
+  el.style.color = score === 3 ? '#2ecc71' : score >= 2 ? '#f39c12' : '#e74c3c';
+}
+</script>
+<script src="course.js"></script>
+</body>
+</html>

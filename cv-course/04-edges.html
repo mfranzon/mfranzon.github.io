@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Vision with Marco</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="topnav">
+  <a href="../index.html" class="back-link">← mfranzon.com</a>
+  <span class="logo">CV with Marco</span>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="01-intro.html">1 · Intro</a></li>
+    <li><a href="02-image-basics.html">2 · Image Basics</a></li>
+    <li><a href="03-filters.html">3 · Filters</a></li>
+    <li><a href="04-edges.html" class="active">4 · Edges</a></li>
+    <li><a href="05-features.html">5 · Features</a></li>
+    <li><a href="06-segmentation.html">6 · Segmentation</a></li>
+    <li><a href="07-cnn.html">7 · CNNs</a></li>
+    <li><a href="08-detection.html">8 · Detection</a></li>
+  </ul>
+</nav>
+
+<div class="lesson-wrap">
+  <aside class="sidebar">
+    <h4>Module 4</h4>
+    <a href="#why-edges">Why Edges?</a>
+    <a href="#gradient">Image Gradient</a>
+    <a href="#sobel">Sobel Operator</a>
+    <a href="#demo-sobel">Demo: Sobel Live</a>
+    <a href="#canny">Canny Algorithm</a>
+    <a href="#demo-canny">Demo: Canny Live</a>
+    <a href="#comparison">Comparison</a>
+    <a href="#quiz">Quiz</a>
+  </aside>
+
+  <main class="lesson-content">
+    <h1>Edge Detection</h1>
+    <p class="subtitle">Module 4 — Sobel, Prewitt, Laplacian, Canny</p>
+
+    <h2 id="why-edges">Why Edges?</h2>
+    <p>
+      Edges mark boundaries — where the intensity changes sharply. They are among the most information-rich parts of an image. Object boundaries, surface discontinuities, shadows — all appear as edges. Detecting them reduces an image to its structural skeleton.
+    </p>
+    <p>
+      Humans can recognize objects from edge drawings alone. This is why edge detection is a fundamental preprocessing step for many CV pipelines.
+    </p>
+
+    <h2 id="gradient">The Image Gradient</h2>
+    <p>
+      An edge is a location where intensity changes rapidly — a large <strong>gradient</strong>. The gradient is a vector pointing in the direction of steepest increase:
+    </p>
+    <div class="formula">∇I = (∂I/∂x, ∂I/∂y)</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>∇I</td><td>gradient of the image — a 2-D vector showing the direction and strength of intensity change at each pixel</td></tr>
+        <tr><td>∂I/∂x</td><td>partial derivative in the horizontal direction — how much intensity changes as you move left/right</td></tr>
+        <tr><td>∂I/∂y</td><td>partial derivative in the vertical direction — how much intensity changes as you move up/down</td></tr>
+        <tr><td>(…, …)</td><td>a 2-component vector: horizontal change paired with vertical change</td></tr>
+      </table>
+    </div>
+    <p>The magnitude and direction of an edge:</p>
+    <div class="formula">|∇I| = √(Gx² + Gy²)&nbsp;&nbsp;&nbsp;θ = arctan(Gy / Gx)</div>
+    <div class="formula-breakdown">
+      <div class="fb-title">Symbol guide</div>
+      <table>
+        <tr><td>|∇I|</td><td>gradient magnitude — edge strength; large values = sharp edge, small values = smooth region</td></tr>
+        <tr><td>Gx</td><td>horizontal gradient component (output of Sobel-x kernel) — positive = brighter on the right</td></tr>
+        <tr><td>Gy</td><td>vertical gradient component (output of Sobel-y kernel) — positive = brighter below</td></tr>
+        <tr><td>√(Gx² + Gy²)</td><td>Pythagorean theorem applied to the gradient vector — combines both directions into one strength number</td></tr>
+        <tr><td>θ (theta)</td><td>gradient direction — the angle of the edge in degrees, perpendicular to the actual edge line</td></tr>
+        <tr><td>arctan(Gy / Gx)</td><td>inverse tangent — converts the (Gx, Gy) ratio back to an angle in radians/degrees</td></tr>
+      </table>
+    </div>
+    <p>We approximate these partial derivatives using convolution kernels.</p>
+
+    <h2 id="sobel">Sobel Operator</h2>
+    <p>The Sobel operator uses two 3×3 kernels to approximate horizontal and vertical derivatives:</p>
+    <div style="display:flex; gap:2rem; flex-wrap:wrap; margin:1rem 0;">
+      <div>
+        <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.4rem;">Gx (vertical edges)</div>
+        <table class="kernel-table">
+          <tr><td>-1</td><td>0</td><td>+1</td></tr>
+          <tr><td>-2</td><td>0</td><td>+2</td></tr>
+          <tr><td>-1</td><td>0</td><td>+1</td></tr>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.4rem;">Gy (horizontal edges)</div>
+        <table class="kernel-table">
+          <tr><td>-1</td><td>-2</td><td>-1</td></tr>
+          <tr><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>+1</td><td>+2</td><td>+1</td></tr>
+        </table>
+      </div>
+    </div>
+    <p>The center row/column gets weight 2 — this is implicit Gaussian smoothing, making Sobel more noise-resistant than Prewitt (which uses weights 1,1,1).</p>
+
+    <div class="demo-box" id="demo-sobel">
+      <h3>Sobel Edge Detection — Live</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Show</label>
+            <select id="sobel-mode">
+              <option value="mag">Gradient magnitude</option>
+              <option value="gx">Gx (vertical edges)</option>
+              <option value="gy">Gy (horizontal edges)</option>
+              <option value="angle">Gradient angle</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Threshold: <span class="val-display" id="sobel-thresh-val">30</span></label>
+            <input type="range" id="sobel-thresh" min="0" max="200" value="30">
+          </div>
+          <div class="control-group">
+            <label>Pre-blur σ: <span class="val-display" id="sobel-blur-val">1</span></label>
+            <input type="range" id="sobel-blur" min="0" max="5" value="1">
+          </div>
+          <div class="control-group">
+            <label>Image</label>
+            <select id="sobel-img">
+              <option value="shapes">Geometric shapes</option>
+              <option value="face">Face sketch</option>
+              <option value="grid">Grid pattern</option>
+            </select>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="sobel-src-c" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Source (grayscale)</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="sobel-dst-c" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;" id="sobel-label">Gradient magnitude</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="canny">Canny Edge Detector</h2>
+    <p>
+      Canny (1986) is the gold-standard edge detector. It aims for: <em>good detection</em> (find all real edges), <em>good localization</em> (edges are thin and precise), <em>minimal response</em> (each edge causes only one response).
+    </p>
+    <p>The Canny algorithm has 4 stages:</p>
+    <ol style="padding-left:1.5rem; color:#c5cfe0;">
+      <li style="margin-bottom:0.5rem;"><strong>Gaussian smoothing</strong> — suppress noise with a Gaussian blur</li>
+      <li style="margin-bottom:0.5rem;"><strong>Gradient computation</strong> — Sobel to get magnitude and direction</li>
+      <li style="margin-bottom:0.5rem;"><strong>Non-maximum suppression (NMS)</strong> — thin edges to 1-pixel width by keeping only local maxima along gradient direction</li>
+      <li style="margin-bottom:0.5rem;"><strong>Double thresholding + hysteresis</strong> — strong edges kept; weak edges kept only if connected to a strong edge</li>
+    </ol>
+
+    <div class="callout tip">
+      <strong>Hysteresis magic:</strong> With two thresholds (high & low), Canny avoids both missing faint edges connected to real edges AND keeping random noise as edges.
+    </div>
+
+    <div class="demo-box" id="demo-canny">
+      <h3>Canny Edge Detector — Interactive</h3>
+      <div class="demo-row">
+        <div class="controls">
+          <div class="control-group">
+            <label>Low threshold: <span class="val-display" id="canny-lo-val">20</span></label>
+            <input type="range" id="canny-lo" min="1" max="150" value="20">
+          </div>
+          <div class="control-group">
+            <label>High threshold: <span class="val-display" id="canny-hi-val">60</span></label>
+            <input type="range" id="canny-hi" min="10" max="255" value="60">
+          </div>
+          <div class="control-group">
+            <label>Blur σ: <span class="val-display" id="canny-blur-val">1</span></label>
+            <input type="range" id="canny-blur" min="0" max="4" value="1">
+          </div>
+          <div class="control-group">
+            <label>Image</label>
+            <select id="canny-img">
+              <option value="shapes">Geometric shapes</option>
+              <option value="face">Face sketch</option>
+              <option value="grid">Grid pattern</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Show step</label>
+            <select id="canny-step">
+              <option value="final">Final edges</option>
+              <option value="gradient">After gradient</option>
+              <option value="nms">After NMS</option>
+            </select>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="canny-src-c" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Source</div>
+        </div>
+        <div style="text-align:center;">
+          <canvas id="canny-dst-c" width="200" height="150" style="border-radius:6px; border:1px solid var(--border); display:block;"></canvas>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;" id="canny-step-label">Canny edges</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="comparison">Detector Comparison</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:0.75rem; margin:1rem 0;">
+      <div class="compare-card"><strong>Sobel</strong><br><small>Fast, gradient magnitude. Not thin edges. Good for real-time.</small></div>
+      <div class="compare-card"><strong>Prewitt</strong><br><small>Like Sobel, slightly noisier (equal weights). Simpler.</small></div>
+      <div class="compare-card"><strong>Laplacian</strong><br><small>Second derivative. Detects zero-crossings. Sensitive to noise.</small></div>
+      <div class="compare-card"><strong>LoG</strong><br><small>Gaussian + Laplacian. Smoother. Marr-Hildreth detector.</small></div>
+      <div class="compare-card"><strong>Canny</strong><br><small>Best overall. Thin edges, hysteresis, tunable. Slower.</small></div>
+    </div>
+
+    <h2 id="quiz">Quiz</h2>
+    <div class="quiz-box">
+      <h3>Check your understanding</h3>
+      <div class="quiz-q" id="q1">
+        <p>1. What does Non-Maximum Suppression do in Canny edge detection?</p>
+        <label><input type="radio" name="q1" value="a"> Removes edges below a threshold</label>
+        <label><input type="radio" name="q1" value="b"> Thins edges to 1-pixel width by keeping only local gradient maxima</label>
+        <label><input type="radio" name="q1" value="c"> Suppresses noise with a Gaussian filter</label>
+        <label><input type="radio" name="q1" value="d"> Connects broken edge segments</label>
+      </div>
+      <div class="quiz-q" id="q2">
+        <p>2. If Gx = 3 and Gy = 4, what is the gradient magnitude?</p>
+        <label><input type="radio" name="q2" value="a"> 7</label>
+        <label><input type="radio" name="q2" value="b"> 3.5</label>
+        <label><input type="radio" name="q2" value="c"> 5</label>
+        <label><input type="radio" name="q2" value="d"> 12</label>
+      </div>
+      <div class="quiz-q" id="q3">
+        <p>3. Why is Gaussian smoothing done as a first step in Canny?</p>
+        <label><input type="radio" name="q3" value="a"> To make the image larger</label>
+        <label><input type="radio" name="q3" value="b"> To convert to grayscale</label>
+        <label><input type="radio" name="q3" value="c"> Noise produces large gradients; smoothing prevents false edges from noise</label>
+        <label><input type="radio" name="q3" value="d"> To speed up the subsequent steps</label>
+      </div>
+      <button onclick="checkQuiz()" style="margin-top:0.5rem; padding:0.5rem 1.25rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer;">Check Answers</button>
+      <div id="quiz-result" style="margin-top:1rem; font-weight:600;"></div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="03-filters.html">← Filters</a>
+      <a href="05-features.html">Next: Features →</a>
+    </div>
+  </main>
+</div>
+
+<style>
+.kernel-table { border-collapse: collapse; font-family: monospace; font-size:0.9rem; }
+.kernel-table td { border: 1px solid var(--border); padding: 0.4rem 0.75rem; text-align:center; background:var(--bg3); }
+.compare-card {
+  background: var(--bg2); border:1px solid var(--border); border-radius:8px;
+  padding:0.8rem; font-size:0.82rem;
+}
+.compare-card small { display:block; color:var(--muted); margin-top:0.3rem; line-height:1.4; }
+</style>
+
+<script>
+// ── Draw test images ──
+function drawShapes(ctx, w, h, gray=true) {
+  ctx.fillStyle = gray ? '#1a1a1a' : '#1e2535';
+  ctx.fillRect(0,0,w,h);
+  ctx.fillStyle = gray ? '#b0b0b0' : '#7c6af7';
+  ctx.fillRect(15,15,60,60);
+  ctx.fillStyle = gray ? '#d0d0d0' : '#4fc3f7';
+  ctx.beginPath(); ctx.arc(140,50,40,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = gray ? '#888' : '#2ecc71';
+  ctx.beginPath(); ctx.moveTo(20,120); ctx.lineTo(75,158); ctx.lineTo(130,120); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = gray ? '#e0e0e0' : '#e74c3c';
+  ctx.fillRect(140,105,50,45);
+}
+function drawFace(ctx, w, h) {
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#ccc'; ctx.lineWidth = 2;
+  // head
+  ctx.beginPath(); ctx.ellipse(w/2,h/2-5,55,65,0,0,Math.PI*2); ctx.stroke();
+  // eyes
+  ctx.beginPath(); ctx.ellipse(w/2-22,h/2-20,10,8,0,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(w/2+22,h/2-20,10,8,0,0,Math.PI*2); ctx.stroke();
+  // nose
+  ctx.beginPath(); ctx.moveTo(w/2,h/2-5); ctx.lineTo(w/2-8,h/2+15); ctx.lineTo(w/2+8,h/2+15); ctx.stroke();
+  // mouth
+  ctx.beginPath(); ctx.arc(w/2,h/2+25,18,0.2,Math.PI-0.2); ctx.stroke();
+}
+function drawGrid(ctx, w, h) {
+  ctx.fillStyle = '#111'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1.5;
+  for (let x=20;x<w;x+=20) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for (let y=20;y<h;y+=20) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+  ctx.fillStyle = '#888';
+  ctx.beginPath(); ctx.arc(70,70,25,0,Math.PI*2); ctx.fill();
+  ctx.fillRect(120,30,40,40);
+}
+
+function getTestImage(type, canvas) {
+  const ctx = canvas.getContext('2d');
+  if (type === 'shapes') drawShapes(ctx, canvas.width, canvas.height, true);
+  else if (type === 'face') drawFace(ctx, canvas.width, canvas.height);
+  else drawGrid(ctx, canvas.width, canvas.height);
+}
+
+// ── Gaussian blur on pixel array ──
+function gaussianBlurData(data, w, h, sigma) {
+  if (sigma === 0) return new Uint8ClampedArray(data);
+  const r = Math.ceil(sigma * 2);
+  const size = r*2+1;
+  const k = [];
+  let sum = 0;
+  for (let y=-r;y<=r;y++) for (let x=-r;x<=r;x++) { const v=Math.exp(-(x*x+y*y)/(2*sigma*sigma)); k.push(v); sum+=v; }
+  const kn = k.map(v=>v/sum);
+  const out = new Uint8ClampedArray(data.length);
+  for (let py=0;py<h;py++) for (let px=0;px<w;px++) {
+    let s=0;
+    for (let ky=0;ky<size;ky++) for (let kx=0;kx<size;kx++) {
+      const sx=Math.min(w-1,Math.max(0,px+kx-r));
+      const sy=Math.min(h-1,Math.max(0,py+ky-r));
+      s+=data[(sy*w+sx)*4]*kn[ky*size+kx];
+    }
+    const di=(py*w+px)*4;
+    out[di]=out[di+1]=out[di+2]=s|0; out[di+3]=255;
+  }
+  return out;
+}
+
+// ── Sobel on pixel array → {mag, gx, gy, angle} ──
+function sobelData(data, w, h) {
+  const Kx=[-1,0,1,-2,0,2,-1,0,1], Ky=[-1,-2,-1,0,0,0,1,2,1];
+  const mag=new Float32Array(w*h), gx=new Float32Array(w*h), gy_=new Float32Array(w*h), ang=new Float32Array(w*h);
+  for (let y=0;y<h;y++) for (let x=0;x<w;x++) {
+    let sx=0,sy=0;
+    for (let ky=0;ky<3;ky++) for (let kx=0;kx<3;kx++) {
+      const px=Math.min(w-1,Math.max(0,x+kx-1));
+      const py=Math.min(h-1,Math.max(0,y+ky-1));
+      const v=data[(py*w+px)*4];
+      sx+=v*Kx[ky*3+kx]; sy+=v*Ky[ky*3+kx];
+    }
+    const i=y*w+x;
+    gx[i]=sx; gy_[i]=sy;
+    mag[i]=Math.sqrt(sx*sx+sy*sy);
+    ang[i]=Math.atan2(sy,sx);
+  }
+  return {mag,gx,gy:gy_,ang};
+}
+
+// ── Sobel demo ──
+const sobelSrc = document.getElementById('sobel-src-c');
+const sobelDst = document.getElementById('sobel-dst-c');
+
+function updateSobel() {
+  const imgType = document.getElementById('sobel-img').value;
+  const mode = document.getElementById('sobel-mode').value;
+  const thresh = +document.getElementById('sobel-thresh').value;
+  const blurSigma = +document.getElementById('sobel-blur').value;
+  document.getElementById('sobel-thresh-val').textContent = thresh;
+  document.getElementById('sobel-blur-val').textContent = blurSigma;
+  document.getElementById('sobel-label').textContent = mode === 'mag' ? 'Gradient magnitude' : mode === 'gx' ? 'Gx (vertical edges)' : mode === 'gy' ? 'Gy (horizontal edges)' : 'Gradient angle';
+
+  getTestImage(imgType, sobelSrc);
+  let data = sobelSrc.getContext('2d').getImageData(0,0,sobelSrc.width,sobelSrc.height).data;
+  if (blurSigma > 0) data = gaussianBlurData(data, sobelSrc.width, sobelSrc.height, blurSigma);
+
+  const {mag,gx,gy,ang} = sobelData(data, sobelSrc.width, sobelSrc.height);
+  const out = new Uint8ClampedArray(sobelSrc.width * sobelSrc.height * 4);
+  for (let i=0;i<sobelSrc.width*sobelSrc.height;i++) {
+    let v;
+    if (mode==='mag') v = Math.min(255, mag[i]);
+    else if (mode==='gx') v = Math.min(255, Math.abs(gx[i]));
+    else if (mode==='gy') v = Math.min(255, Math.abs(gy[i]));
+    else v = ((ang[i] + Math.PI) / (2*Math.PI)) * 255;
+    if (mode !== 'angle' && v < thresh) v = 0;
+    out[i*4]=out[i*4+1]=out[i*4+2]=v|0; out[i*4+3]=255;
+  }
+  sobelDst.getContext('2d').putImageData(new ImageData(out,sobelSrc.width,sobelSrc.height),0,0);
+}
+['sobel-mode','sobel-thresh','sobel-blur','sobel-img'].forEach(id=>document.getElementById(id).addEventListener('input',updateSobel));
+updateSobel();
+
+// ── NMS (simplified) ──
+function nms(mag, ang, w, h) {
+  const out = new Float32Array(w*h);
+  const dirs = [[1,0],[1,1],[0,1],[-1,1]];
+  for (let y=1;y<h-1;y++) for (let x=1;x<w-1;x++) {
+    const i=y*w+x;
+    const a = ang[i];
+    const sector = Math.round(((a + Math.PI) / Math.PI) * 4) % 4;
+    const [dx,dy] = dirs[sector];
+    const n1 = mag[(y+dy)*w+(x+dx)];
+    const n2 = mag[(y-dy)*w+(x-dx)];
+    out[i] = mag[i] >= n1 && mag[i] >= n2 ? mag[i] : 0;
+  }
+  return out;
+}
+
+// ── Hysteresis ──
+function hysteresis(nmsData, w, h, lo, hi) {
+  const strong = new Uint8Array(w*h);
+  const weak = new Uint8Array(w*h);
+  for (let i=0;i<w*h;i++) {
+    if (nmsData[i] >= hi) strong[i] = 1;
+    else if (nmsData[i] >= lo) weak[i] = 1;
+  }
+  const out = new Uint8Array(w*h);
+  const stack = [];
+  for (let i=0;i<w*h;i++) if (strong[i]) { out[i]=255; stack.push(i); }
+  while (stack.length) {
+    const idx = stack.pop();
+    const x=idx%w, y=(idx/w)|0;
+    for (let dy=-1;dy<=1;dy++) for (let dx=-1;dx<=1;dx++) {
+      if (!dx&&!dy) continue;
+      const nx=x+dx, ny=y+dy;
+      if (nx<0||nx>=w||ny<0||ny>=h) continue;
+      const ni=ny*w+nx;
+      if (weak[ni] && !out[ni]) { out[ni]=255; stack.push(ni); }
+    }
+  }
+  return out;
+}
+
+const cannySrc = document.getElementById('canny-src-c');
+const cannyDst = document.getElementById('canny-dst-c');
+
+function updateCanny() {
+  const lo = +document.getElementById('canny-lo').value;
+  const hi = +document.getElementById('canny-hi').value;
+  const sigma = +document.getElementById('canny-blur').value;
+  const imgType = document.getElementById('canny-img').value;
+  const step = document.getElementById('canny-step').value;
+  document.getElementById('canny-lo-val').textContent = lo;
+  document.getElementById('canny-hi-val').textContent = hi;
+  document.getElementById('canny-blur-val').textContent = sigma;
+  document.getElementById('canny-step-label').textContent = step === 'final' ? 'Canny edges' : step === 'gradient' ? 'Gradient magnitude' : 'After NMS';
+
+  getTestImage(imgType, cannySrc);
+  let data = cannySrc.getContext('2d').getImageData(0,0,cannySrc.width,cannySrc.height).data;
+  if (sigma > 0) data = gaussianBlurData(data, cannySrc.width, cannySrc.height, sigma);
+
+  const {mag,ang} = sobelData(data, cannySrc.width, cannySrc.height);
+  const nmsData = nms(mag, ang, cannySrc.width, cannySrc.height);
+  const edges = hysteresis(nmsData, cannySrc.width, cannySrc.height, lo, hi);
+
+  const out = new Uint8ClampedArray(cannySrc.width * cannySrc.height * 4);
+  for (let i=0;i<cannySrc.width*cannySrc.height;i++) {
+    let v;
+    if (step==='gradient') v = Math.min(255, mag[i]);
+    else if (step==='nms') v = Math.min(255, nmsData[i]);
+    else v = edges[i];
+    out[i*4]=out[i*4+1]=out[i*4+2]=v|0; out[i*4+3]=255;
+  }
+  cannyDst.getContext('2d').putImageData(new ImageData(out,cannySrc.width,cannySrc.height),0,0);
+}
+['canny-lo','canny-hi','canny-blur','canny-img','canny-step'].forEach(id=>document.getElementById(id).addEventListener('input',updateCanny));
+updateCanny();
+
+// ── Quiz ──
+const answers = {q1:'b',q2:'c',q3:'c'};
+function checkQuiz() {
+  let score=0;
+  for (const [q,correct] of Object.entries(answers)) {
+    const sel=document.querySelector(`input[name="${q}"]:checked`);
+    document.querySelectorAll(`#${q} label`).forEach(l=>{
+      l.classList.remove('correct','wrong');
+      if(l.querySelector('input').value===correct) l.classList.add('correct');
+      else if(sel&&l.querySelector('input').value===sel.value) l.classList.add('wrong');
+    });
+    if(sel&&sel.value===correct) score++;
+  }
+  const el=document.getElementById('quiz-result');
+  el.textContent=`Score: ${score}/3 ${score===3?'🎉 Perfect!':score>=2?'👍 Almost!':'📚 Review and try again.'}`;
+  el.style.color=score===3?'#2ecc71':score>=2?'#f39c12':'#e74c3c';
+}
+</script>
+<script src="course.js"></script>
+</body>
+</html>
