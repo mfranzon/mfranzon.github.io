@@ -36,11 +36,11 @@
 
   <main class="lesson-content">
     <h1>Spatial Filters &amp; Convolution</h1>
-    <p class="subtitle">Module 3 — Kernels, Blur, Sharpen, Noise Reduction</p>
+    <p class="subtitle">Module 3 - Kernels, Blur, Sharpen, Noise Reduction</p>
 
     <h2 id="convolution">What is Convolution?</h2>
     <p>
-      Convolution is the fundamental operation in image processing (and CNNs). A small matrix called a <strong>kernel</strong> (or filter) slides across the image. At each position, you multiply each kernel value by the corresponding pixel, then sum — that sum becomes the output pixel.
+      Convolution is the fundamental operation in image processing (and CNNs). A small matrix called a <strong>kernel</strong> (or filter) slides across the image. At each position, you multiply each kernel value by the corresponding pixel, then sum - that sum becomes the output pixel.
     </p>
 
     <div class="formula">(I ★ K)(x, y) = Σᵢ Σⱼ I(x+i, y+j) · K(i, j)</div>
@@ -48,12 +48,12 @@
       <div class="fb-title">Symbol guide</div>
       <table>
         <tr><td>(I ★ K)(x, y)</td><td>result of convolving image I with kernel K at output pixel (x, y)</td></tr>
-        <tr><td>I</td><td>input image — a 2-D grid of pixel intensity values</td></tr>
-        <tr><td>K</td><td>kernel (filter) — a small matrix, e.g. 3×3, whose values define the operation (blur, sharpen, edge detect...)</td></tr>
-        <tr><td>★</td><td>convolution operator — slide K over every pixel of I and compute a weighted sum</td></tr>
-        <tr><td>Σᵢ Σⱼ</td><td>double summation — loop over every row i and column j of the kernel</td></tr>
+        <tr><td>I</td><td>input image - a 2-D grid of pixel intensity values</td></tr>
+        <tr><td>K</td><td>kernel (filter) - a small matrix, e.g. 3×3, whose values define the operation (blur, sharpen, edge detect...)</td></tr>
+        <tr><td>★</td><td>convolution operator - slide K over every pixel of I and compute a weighted sum</td></tr>
+        <tr><td>Σᵢ Σⱼ</td><td>double summation - loop over every row i and column j of the kernel</td></tr>
         <tr><td>I(x+i, y+j)</td><td>the neighboring pixel of I offset by (i, j) from the center position (x, y)</td></tr>
-        <tr><td>K(i, j)</td><td>the kernel weight at position (i, j) — how much that neighbor contributes</td></tr>
+        <tr><td>K(i, j)</td><td>the kernel weight at position (i, j) - how much that neighbor contributes</td></tr>
         <tr><td>· (dot)</td><td>multiply the neighbor pixel value by the kernel weight, then add it to the running total</td></tr>
       </table>
     </div>
@@ -124,13 +124,13 @@
     <h2 id="blur">Types of Blur</h2>
     <ul>
       <li><strong>Box blur:</strong> Each pixel = average of its neighbors. Fast but not realistic.</li>
-      <li><strong>Gaussian blur:</strong> Weighted average — neighbors closer to center count more. Most natural. σ controls spread.</li>
+      <li><strong>Gaussian blur:</strong> Weighted average - neighbors closer to center count more. Most natural. σ controls spread.</li>
       <li><strong>Median filter:</strong> Replace each pixel with the <em>median</em> of neighbors. Preserves edges, excellent for salt-and-pepper noise.</li>
-      <li><strong>Bilateral filter:</strong> Blur only pixels with similar intensity — smooths while preserving edges.</li>
+      <li><strong>Bilateral filter:</strong> Blur only pixels with similar intensity - smooths while preserving edges.</li>
     </ul>
 
     <div class="demo-box" id="demo-blur">
-      <h3>Blur Comparison — Live</h3>
+      <h3>Blur Comparison - Live</h3>
       <div class="demo-row">
         <div class="controls">
           <div class="control-group">

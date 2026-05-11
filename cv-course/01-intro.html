@@ -36,11 +36,11 @@
 
   <main class="lesson-content">
     <h1>What is Computer Vision?</h1>
-    <p class="subtitle">Module 1 — Conceptual Foundation</p>
+    <p class="subtitle">Module 1 - Conceptual Foundation</p>
 
     <h2 id="what">The Core Question</h2>
     <p>
-      Computer vision is the field of study that enables machines to interpret and understand visual information from the world — images, videos, and 3D scans. The goal is to replicate and eventually surpass human visual perception using algorithms.
+      Computer vision is the field of study that enables machines to interpret and understand visual information from the world - images, videos, and 3D scans. The goal is to replicate and eventually surpass human visual perception using algorithms.
     </p>
     <p>
       When you look at a photo of a cat, your brain instantly recognizes the animal, its pose, the background, and even its mood. A computer sees only a grid of numbers. Computer vision is the bridge between those numbers and meaningful understanding.
@@ -52,11 +52,11 @@
 
     <h2 id="history">Brief History</h2>
     <ul>
-      <li><strong>1966 — MIT Summer Vision Project:</strong> Marvin Minsky assigned "solving computer vision" as a summer project. It's still not fully solved.</li>
+      <li><strong>1966 - MIT Summer Vision Project:</strong> Marvin Minsky assigned "solving computer vision" as a summer project. It's still not fully solved.</li>
       <li><strong>1970s–80s:</strong> Edge detection, optical flow (Lucas-Kanade), Hough transform, stereo vision.</li>
       <li><strong>1990s:</strong> Statistical methods, face detection (Viola-Jones 2001), SIFT features.</li>
-      <li><strong>2012 — AlexNet:</strong> Deep CNNs trained on GPUs win ImageNet by a massive margin. The deep learning era begins.</li>
-      <li><strong>2017–now:</strong> Transformers (ViT), diffusion models, CLIP, SAM — vision meets language.</li>
+      <li><strong>2012 - AlexNet:</strong> Deep CNNs trained on GPUs win ImageNet by a massive margin. The deep learning era begins.</li>
+      <li><strong>2017–now:</strong> Transformers (ViT), diffusion models, CLIP, SAM - vision meets language.</li>
     </ul>
 
     <h2 id="pipeline">The Image Processing Pipeline</h2>
@@ -82,7 +82,7 @@
 
     <h2 id="camera">How Digital Cameras Work</h2>
     <p>
-      A camera sensor is a 2D grid of photosensitive cells (pixels). Each cell measures the intensity of light hitting it. Most consumer cameras use a <strong>Bayer filter</strong> — a mosaic of R, G, G, B filters (twice as many green, matching human eye sensitivity).
+      A camera sensor is a 2D grid of photosensitive cells (pixels). Each cell measures the intensity of light hitting it. Most consumer cameras use a <strong>Bayer filter</strong> - a mosaic of R, G, G, B filters (twice as many green, matching human eye sensitivity).
     </p>
 
     <div class="demo-box">
@@ -95,12 +95,12 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>I(x, y)</td><td>pixel intensity at column x, row y — a single number (0 = black, 255 = white)</td></tr>
-        <tr><td>L(x, y, λ)</td><td>radiance — how much light of wavelength λ arrives at pixel position (x, y)</td></tr>
+        <tr><td>I(x, y)</td><td>pixel intensity at column x, row y - a single number (0 = black, 255 = white)</td></tr>
+        <tr><td>L(x, y, λ)</td><td>radiance - how much light of wavelength λ arrives at pixel position (x, y)</td></tr>
         <tr><td>λ (lambda)</td><td>wavelength of light, e.g. 450 nm = blue, 550 nm = green, 650 nm = red</td></tr>
-        <tr><td>R(λ)</td><td>sensor spectral response — how sensitive the sensor is to each wavelength</td></tr>
-        <tr><td>· (dot)</td><td>multiplication — light intensity times sensor sensitivity at that wavelength</td></tr>
-        <tr><td>∫∫ … dλ</td><td>integration over all visible wavelengths — summing contributions from every color of light</td></tr>
+        <tr><td>R(λ)</td><td>sensor spectral response - how sensitive the sensor is to each wavelength</td></tr>
+        <tr><td>· (dot)</td><td>multiplication - light intensity times sensor sensitivity at that wavelength</td></tr>
+        <tr><td>∫∫ … dλ</td><td>integration over all visible wavelengths - summing contributions from every color of light</td></tr>
         <tr><td>dλ</td><td>infinitesimally small wavelength step (the "slice" being summed in the integral)</td></tr>
       </table>
     </div>

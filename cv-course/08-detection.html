@@ -40,11 +40,11 @@
 
   <main class="lesson-content">
     <h1>Object Detection</h1>
-    <p class="subtitle">Module 8 — Sliding Windows, Anchors, IoU, NMS, YOLO</p>
+    <p class="subtitle">Module 8 - Sliding Windows, Anchors, IoU, NMS, YOLO</p>
 
     <h2 id="what-det">What is Object Detection?</h2>
     <p>
-      Classification answers "what is in the image?". Detection answers "what is where?" — for each object instance, output a <strong>bounding box</strong> (x, y, w, h) and a <strong>class label</strong> with a confidence score.
+      Classification answers "what is in the image?". Detection answers "what is where?" - for each object instance, output a <strong>bounding box</strong> (x, y, w, h) and a <strong>class label</strong> with a confidence score.
     </p>
     <p>Detection is harder: images may contain multiple objects of different sizes; objects may overlap; the number of objects is variable.</p>
 
@@ -61,11 +61,11 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>IoU</td><td>Intersection over Union — a score from 0 (no overlap) to 1.0 (perfect match)</td></tr>
-        <tr><td>Predicted</td><td>the bounding box your model output — defined by (x, y, width, height)</td></tr>
+        <tr><td>IoU</td><td>Intersection over Union - a score from 0 (no overlap) to 1.0 (perfect match)</td></tr>
+        <tr><td>Predicted</td><td>the bounding box your model output - defined by (x, y, width, height)</td></tr>
         <tr><td>Ground Truth</td><td>the manually labeled correct box for the object</td></tr>
-        <tr><td>∩ (intersection)</td><td>the overlapping region between the two boxes — the area both boxes share</td></tr>
-        <tr><td>∪ (union)</td><td>the total area covered by either box — intersection plus the non-overlapping parts</td></tr>
+        <tr><td>∩ (intersection)</td><td>the overlapping region between the two boxes - the area both boxes share</td></tr>
+        <tr><td>∪ (union)</td><td>the total area covered by either box - intersection plus the non-overlapping parts</td></tr>
         <tr><td>Area(…)</td><td>pixel area of the region, computed as width × height of the rectangle</td></tr>
         <tr><td>IoU ≥ 0.5</td><td>common threshold for counting a detection as a "true positive" in evaluation metrics</td></tr>
       </table>
@@ -77,7 +77,7 @@
     </ul>
 
     <div class="demo-box" id="demo-iou">
-      <h3>IoU Calculator — Drag the boxes</h3>
+      <h3>IoU Calculator - Drag the boxes</h3>
       <canvas id="iou-canvas" width="420" height="260" style="border-radius:6px; border:1px solid var(--border); cursor:move;"></canvas>
       <div style="display:flex; gap:1.5rem; margin-top:0.75rem; flex-wrap:wrap;">
         <div><span style="color:#4fc3f7; font-weight:700;">■</span> Predicted box</div>
@@ -89,10 +89,10 @@
 
     <h2 id="anchors">Anchor Boxes</h2>
     <p>
-      Instead of sliding arbitrary windows, modern detectors pre-define a set of <strong>anchor boxes</strong> at each grid cell — boxes with different aspect ratios and scales. The network predicts <em>offsets</em> from these anchors rather than absolute coordinates. This drastically reduces the search space.
+      Instead of sliding arbitrary windows, modern detectors pre-define a set of <strong>anchor boxes</strong> at each grid cell - boxes with different aspect ratios and scales. The network predicts <em>offsets</em> from these anchors rather than absolute coordinates. This drastically reduces the search space.
     </p>
     <div class="callout tip">
-      <strong>Why anchors work:</strong> Natural objects (cars, people, faces) have characteristic aspect ratios. Anchors initialized to these ratios give the network a good starting point — it only needs to predict small adjustments.
+      <strong>Why anchors work:</strong> Natural objects (cars, people, faces) have characteristic aspect ratios. Anchors initialized to these ratios give the network a good starting point - it only needs to predict small adjustments.
     </div>
 
     <h2 id="nms">Non-Maximum Suppression (NMS)</h2>
@@ -108,19 +108,19 @@
 
     <h2 id="yolo">YOLO Intuition</h2>
     <p>
-      <strong>YOLO</strong> (You Only Look Once, 2016) made real-time detection practical. Its core idea: divide the image into an S×S grid. Each cell predicts B bounding boxes and C class probabilities — in a <em>single forward pass</em>.
+      <strong>YOLO</strong> (You Only Look Once, 2016) made real-time detection practical. Its core idea: divide the image into an S×S grid. Each cell predicts B bounding boxes and C class probabilities - in a <em>single forward pass</em>.
     </p>
     <div class="formula">Output tensor: S × S × (B × 5 + C)</div>
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>S × S</td><td>spatial grid — the image is divided into S rows and S columns of cells; in YOLO v1, S=7</td></tr>
+        <tr><td>S × S</td><td>spatial grid - the image is divided into S rows and S columns of cells; in YOLO v1, S=7</td></tr>
         <tr><td>B</td><td>number of bounding boxes each grid cell predicts; YOLO v1 uses B=2</td></tr>
         <tr><td>5</td><td>values per box: x offset, y offset, width, height, and objectness confidence score</td></tr>
         <tr><td>B × 5</td><td>all bounding box predictions for one cell, e.g. 2 × 5 = 10 values</td></tr>
         <tr><td>C</td><td>number of object classes the model can recognize, e.g. C=20 for VOC dataset (car, dog, person...)</td></tr>
-        <tr><td>B × 5 + C</td><td>total values per grid cell — box predictions plus class probabilities, e.g. 10 + 20 = 30</td></tr>
-        <tr><td>S × S × (B×5+C)</td><td>full output volume shape, e.g. 7 × 7 × 30 — one 3-D tensor from a single forward pass</td></tr>
+        <tr><td>B × 5 + C</td><td>total values per grid cell - box predictions plus class probabilities, e.g. 10 + 20 = 30</td></tr>
+        <tr><td>S × S × (B×5+C)</td><td>full output volume shape, e.g. 7 × 7 × 30 - one 3-D tensor from a single forward pass</td></tr>
       </table>
     </div>
     <p style="font-size:0.82rem;color:var(--muted);">Each box: (x, y, w, h, confidence). For YOLO v1: S=7, B=2, C=20 → output 7×7×30.</p>

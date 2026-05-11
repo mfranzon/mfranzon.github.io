@@ -38,11 +38,11 @@
 
   <main class="lesson-content">
     <h1>Edge Detection</h1>
-    <p class="subtitle">Module 4 — Sobel, Prewitt, Laplacian, Canny</p>
+    <p class="subtitle">Module 4 - Sobel, Prewitt, Laplacian, Canny</p>
 
     <h2 id="why-edges">Why Edges?</h2>
     <p>
-      Edges mark boundaries — where the intensity changes sharply. They are among the most information-rich parts of an image. Object boundaries, surface discontinuities, shadows — all appear as edges. Detecting them reduces an image to its structural skeleton.
+      Edges mark boundaries - where the intensity changes sharply. They are among the most information-rich parts of an image. Object boundaries, surface discontinuities, shadows - all appear as edges. Detecting them reduces an image to its structural skeleton.
     </p>
     <p>
       Humans can recognize objects from edge drawings alone. This is why edge detection is a fundamental preprocessing step for many CV pipelines.
@@ -50,15 +50,15 @@
 
     <h2 id="gradient">The Image Gradient</h2>
     <p>
-      An edge is a location where intensity changes rapidly — a large <strong>gradient</strong>. The gradient is a vector pointing in the direction of steepest increase:
+      An edge is a location where intensity changes rapidly - a large <strong>gradient</strong>. The gradient is a vector pointing in the direction of steepest increase:
     </p>
     <div class="formula">∇I = (∂I/∂x, ∂I/∂y)</div>
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>∇I</td><td>gradient of the image — a 2-D vector showing the direction and strength of intensity change at each pixel</td></tr>
-        <tr><td>∂I/∂x</td><td>partial derivative in the horizontal direction — how much intensity changes as you move left/right</td></tr>
-        <tr><td>∂I/∂y</td><td>partial derivative in the vertical direction — how much intensity changes as you move up/down</td></tr>
+        <tr><td>∇I</td><td>gradient of the image - a 2-D vector showing the direction and strength of intensity change at each pixel</td></tr>
+        <tr><td>∂I/∂x</td><td>partial derivative in the horizontal direction - how much intensity changes as you move left/right</td></tr>
+        <tr><td>∂I/∂y</td><td>partial derivative in the vertical direction - how much intensity changes as you move up/down</td></tr>
         <tr><td>(…, …)</td><td>a 2-component vector: horizontal change paired with vertical change</td></tr>
       </table>
     </div>
@@ -67,12 +67,12 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>|∇I|</td><td>gradient magnitude — edge strength; large values = sharp edge, small values = smooth region</td></tr>
-        <tr><td>Gx</td><td>horizontal gradient component (output of Sobel-x kernel) — positive = brighter on the right</td></tr>
-        <tr><td>Gy</td><td>vertical gradient component (output of Sobel-y kernel) — positive = brighter below</td></tr>
-        <tr><td>√(Gx² + Gy²)</td><td>Pythagorean theorem applied to the gradient vector — combines both directions into one strength number</td></tr>
-        <tr><td>θ (theta)</td><td>gradient direction — the angle of the edge in degrees, perpendicular to the actual edge line</td></tr>
-        <tr><td>arctan(Gy / Gx)</td><td>inverse tangent — converts the (Gx, Gy) ratio back to an angle in radians/degrees</td></tr>
+        <tr><td>|∇I|</td><td>gradient magnitude - edge strength; large values = sharp edge, small values = smooth region</td></tr>
+        <tr><td>Gx</td><td>horizontal gradient component (output of Sobel-x kernel) - positive = brighter on the right</td></tr>
+        <tr><td>Gy</td><td>vertical gradient component (output of Sobel-y kernel) - positive = brighter below</td></tr>
+        <tr><td>√(Gx² + Gy²)</td><td>Pythagorean theorem applied to the gradient vector - combines both directions into one strength number</td></tr>
+        <tr><td>θ (theta)</td><td>gradient direction - the angle of the edge in degrees, perpendicular to the actual edge line</td></tr>
+        <tr><td>arctan(Gy / Gx)</td><td>inverse tangent - converts the (Gx, Gy) ratio back to an angle in radians/degrees</td></tr>
       </table>
     </div>
     <p>We approximate these partial derivatives using convolution kernels.</p>
@@ -97,10 +97,10 @@
         </table>
       </div>
     </div>
-    <p>The center row/column gets weight 2 — this is implicit Gaussian smoothing, making Sobel more noise-resistant than Prewitt (which uses weights 1,1,1).</p>
+    <p>The center row/column gets weight 2 - this is implicit Gaussian smoothing, making Sobel more noise-resistant than Prewitt (which uses weights 1,1,1).</p>
 
     <div class="demo-box" id="demo-sobel">
-      <h3>Sobel Edge Detection — Live</h3>
+      <h3>Sobel Edge Detection - Live</h3>
       <div class="demo-row">
         <div class="controls">
           <div class="control-group">
@@ -146,10 +146,10 @@
     </p>
     <p>The Canny algorithm has 4 stages:</p>
     <ol style="padding-left:1.5rem; color:#c5cfe0;">
-      <li style="margin-bottom:0.5rem;"><strong>Gaussian smoothing</strong> — suppress noise with a Gaussian blur</li>
-      <li style="margin-bottom:0.5rem;"><strong>Gradient computation</strong> — Sobel to get magnitude and direction</li>
-      <li style="margin-bottom:0.5rem;"><strong>Non-maximum suppression (NMS)</strong> — thin edges to 1-pixel width by keeping only local maxima along gradient direction</li>
-      <li style="margin-bottom:0.5rem;"><strong>Double thresholding + hysteresis</strong> — strong edges kept; weak edges kept only if connected to a strong edge</li>
+      <li style="margin-bottom:0.5rem;"><strong>Gaussian smoothing</strong> - suppress noise with a Gaussian blur</li>
+      <li style="margin-bottom:0.5rem;"><strong>Gradient computation</strong> - Sobel to get magnitude and direction</li>
+      <li style="margin-bottom:0.5rem;"><strong>Non-maximum suppression (NMS)</strong> - thin edges to 1-pixel width by keeping only local maxima along gradient direction</li>
+      <li style="margin-bottom:0.5rem;"><strong>Double thresholding + hysteresis</strong> - strong edges kept; weak edges kept only if connected to a strong edge</li>
     </ol>
 
     <div class="callout tip">
@@ -157,7 +157,7 @@
     </div>
 
     <div class="demo-box" id="demo-canny">
-      <h3>Canny Edge Detector — Interactive</h3>
+      <h3>Canny Edge Detector - Interactive</h3>
       <div class="demo-row">
         <div class="controls">
           <div class="control-group">

@@ -37,7 +37,7 @@
 
   <main class="lesson-content">
     <h1>Image Segmentation</h1>
-    <p class="subtitle">Module 6 — Thresholding, K-Means, Semantic & Instance Segmentation</p>
+    <p class="subtitle">Module 6 - Thresholding, K-Means, Semantic & Instance Segmentation</p>
 
     <h2 id="what-seg">What is Segmentation?</h2>
     <p>
@@ -57,10 +57,10 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>seg(x, y)</td><td>segmentation output at pixel (x, y) — either 255 (foreground/white) or 0 (background/black)</td></tr>
-        <tr><td>I(x, y)</td><td>grayscale intensity of the input pixel at column x, row y — a value from 0 to 255</td></tr>
-        <tr><td>T</td><td>threshold — the decision boundary; pixels brighter than T are labeled foreground</td></tr>
-        <tr><td>255 if … else 0</td><td>binary output — assigns white (255) to foreground pixels and black (0) to background pixels</td></tr>
+        <tr><td>seg(x, y)</td><td>segmentation output at pixel (x, y) - either 255 (foreground/white) or 0 (background/black)</td></tr>
+        <tr><td>I(x, y)</td><td>grayscale intensity of the input pixel at column x, row y - a value from 0 to 255</td></tr>
+        <tr><td>T</td><td>threshold - the decision boundary; pixels brighter than T are labeled foreground</td></tr>
+        <tr><td>255 if … else 0</td><td>binary output - assigns white (255) to foreground pixels and black (0) to background pixels</td></tr>
         <tr><td>&gt; T</td><td>comparison: if the pixel is strictly brighter than the threshold, classify it as foreground</td></tr>
       </table>
     </div>
@@ -72,7 +72,7 @@
     </ul>
 
     <div class="demo-box" id="demo-thresh">
-      <h3>Thresholding — Live</h3>
+      <h3>Thresholding - Live</h3>
       <div class="demo-row">
         <div class="controls">
           <div class="control-group">
@@ -113,23 +113,23 @@
     <p>
       K-Means groups pixels by color similarity. Each pixel is assigned to the nearest of K cluster centers; centers are recomputed as the mean of their members. Repeat until convergence.
     </p>
-    <p>The result: a color-quantized image where similar colors are merged, revealing dominant color regions — a form of segmentation.</p>
+    <p>The result: a color-quantized image where similar colors are merged, revealing dominant color regions - a form of segmentation.</p>
     <div class="formula">minimize Σₖ Σᵢ∈Cₖ ‖xᵢ − μₖ‖²</div>
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>minimize</td><td>the algorithm's goal — find cluster assignments that make this total as small as possible</td></tr>
+        <tr><td>minimize</td><td>the algorithm's goal - find cluster assignments that make this total as small as possible</td></tr>
         <tr><td>Σₖ</td><td>outer sum over all K clusters (e.g. k = 1, 2, 3 for K=3 colors)</td></tr>
         <tr><td>Σᵢ∈Cₖ</td><td>inner sum over all pixels i that belong to cluster k</td></tr>
         <tr><td>xᵢ</td><td>the color vector of pixel i, e.g. (R, G, B) = (200, 130, 50)</td></tr>
-        <tr><td>μₖ</td><td>centroid of cluster k — the average color of all pixels currently assigned to that cluster</td></tr>
-        <tr><td>xᵢ − μₖ</td><td>difference vector — how far pixel i's color is from its cluster's average color</td></tr>
-        <tr><td>‖…‖²</td><td>squared Euclidean distance — the sum of squared differences across R, G, B channels</td></tr>
+        <tr><td>μₖ</td><td>centroid of cluster k - the average color of all pixels currently assigned to that cluster</td></tr>
+        <tr><td>xᵢ − μₖ</td><td>difference vector - how far pixel i's color is from its cluster's average color</td></tr>
+        <tr><td>‖…‖²</td><td>squared Euclidean distance - the sum of squared differences across R, G, B channels</td></tr>
       </table>
     </div>
 
     <div class="demo-box" id="demo-kmeans">
-      <h3>K-Means Color Quantization — Live</h3>
+      <h3>K-Means Color Quantization - Live</h3>
       <div class="demo-row">
         <div class="controls">
           <div class="control-group">
@@ -167,7 +167,7 @@
     <h2 id="types">Modern Segmentation Methods</h2>
     <p>Classical methods struggle with complex scenes. Modern approaches use deep learning:</p>
     <ul>
-      <li><strong>FCN (2015):</strong> Fully Convolutional Network — first end-to-end semantic segmentation with CNNs.</li>
+      <li><strong>FCN (2015):</strong> Fully Convolutional Network - first end-to-end semantic segmentation with CNNs.</li>
       <li><strong>U-Net (2015):</strong> Encoder-decoder with skip connections. Excellent for medical imaging.</li>
       <li><strong>Mask R-CNN (2017):</strong> Extends Faster R-CNN with a mask branch. Instance segmentation.</li>
       <li><strong>SAM (2023):</strong> Segment Anything Model by Meta. Promptable segmentation at any granularity.</li>

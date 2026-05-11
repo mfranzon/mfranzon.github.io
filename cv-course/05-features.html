@@ -37,7 +37,7 @@
 
   <main class="lesson-content">
     <h1>Feature Detection</h1>
-    <p class="subtitle">Module 5 — Corners, Harris, SIFT, ORB, Matching</p>
+    <p class="subtitle">Module 5 - Corners, Harris, SIFT, ORB, Matching</p>
 
     <h2 id="what-features">What are Image Features?</h2>
     <p>
@@ -74,13 +74,13 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>M</td><td>structure tensor (2×2 matrix) — summarizes how intensity changes in all directions around a pixel</td></tr>
+        <tr><td>M</td><td>structure tensor (2×2 matrix) - summarizes how intensity changes in all directions around a pixel</td></tr>
         <tr><td>Σ w(x,y)</td><td>weighted sum over a local neighborhood window; w is a Gaussian that gives more weight to the center</td></tr>
-        <tr><td>Iₓ</td><td>horizontal image gradient — how much intensity changes left/right at each pixel</td></tr>
-        <tr><td>Iᵧ</td><td>vertical image gradient — how much intensity changes up/down at each pixel</td></tr>
-        <tr><td>Iₓ²</td><td>squared horizontal gradient — strong in regions with vertical edges</td></tr>
-        <tr><td>Iᵧ²</td><td>squared vertical gradient — strong in regions with horizontal edges</td></tr>
-        <tr><td>IₓIᵧ</td><td>cross term — large when both gradients are strong simultaneously, indicating a corner</td></tr>
+        <tr><td>Iₓ</td><td>horizontal image gradient - how much intensity changes left/right at each pixel</td></tr>
+        <tr><td>Iᵧ</td><td>vertical image gradient - how much intensity changes up/down at each pixel</td></tr>
+        <tr><td>Iₓ²</td><td>squared horizontal gradient - strong in regions with vertical edges</td></tr>
+        <tr><td>Iᵧ²</td><td>squared vertical gradient - strong in regions with horizontal edges</td></tr>
+        <tr><td>IₓIᵧ</td><td>cross term - large when both gradients are strong simultaneously, indicating a corner</td></tr>
         <tr><td>[ … ]</td><td>2×2 matrix notation; the off-diagonal IₓIᵧ terms capture edge orientation correlation</td></tr>
       </table>
     </div>
@@ -89,13 +89,13 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>R</td><td>Harris response score — positive = corner, negative = edge, near zero = flat region</td></tr>
-        <tr><td>det(M)</td><td>determinant of M = λ₁ × λ₂ — large when intensity changes strongly in both directions (corner)</td></tr>
-        <tr><td>trace(M)</td><td>trace of M = λ₁ + λ₂ — sum of eigenvalues, measuring total gradient energy in the window</td></tr>
-        <tr><td>k</td><td>sensitivity constant, typically 0.04–0.06 — trades off corner vs edge detection; higher k = fewer corners</td></tr>
-        <tr><td>λ₁, λ₂</td><td>eigenvalues of M — represent the dominant gradient strengths in two orthogonal directions</td></tr>
-        <tr><td>λ₁λ₂</td><td>product of eigenvalues — large only if both directions have strong gradients (true corner)</td></tr>
-        <tr><td>(λ₁+λ₂)²</td><td>squared sum — penalizes flat regions and single edges where one eigenvalue dominates</td></tr>
+        <tr><td>R</td><td>Harris response score - positive = corner, negative = edge, near zero = flat region</td></tr>
+        <tr><td>det(M)</td><td>determinant of M = λ₁ × λ₂ - large when intensity changes strongly in both directions (corner)</td></tr>
+        <tr><td>trace(M)</td><td>trace of M = λ₁ + λ₂ - sum of eigenvalues, measuring total gradient energy in the window</td></tr>
+        <tr><td>k</td><td>sensitivity constant, typically 0.04–0.06 - trades off corner vs edge detection; higher k = fewer corners</td></tr>
+        <tr><td>λ₁, λ₂</td><td>eigenvalues of M - represent the dominant gradient strengths in two orthogonal directions</td></tr>
+        <tr><td>λ₁λ₂</td><td>product of eigenvalues - large only if both directions have strong gradients (true corner)</td></tr>
+        <tr><td>(λ₁+λ₂)²</td><td>squared sum - penalizes flat regions and single edges where one eigenvalue dominates</td></tr>
       </table>
     </div>
     <ul>
@@ -106,7 +106,7 @@
     <p>k is typically 0.04–0.06. After computing R, apply a threshold and non-maximum suppression to get corner locations.</p>
 
     <div class="demo-box" id="demo-harris">
-      <h3>Harris Corner Detector — Live</h3>
+      <h3>Harris Corner Detector - Live</h3>
       <div class="demo-row">
         <div class="controls">
           <div class="control-group">
@@ -169,7 +169,7 @@
     </p>
     <ul>
       <li><strong>Brute-force:</strong> Compare every descriptor to every other. O(n²). Use Hamming distance for binary descriptors (ORB), L2 for float descriptors (SIFT).</li>
-      <li><strong>FLANN:</strong> Approximate nearest neighbour — much faster for large descriptor sets.</li>
+      <li><strong>FLANN:</strong> Approximate nearest neighbour - much faster for large descriptor sets.</li>
       <li><strong>Ratio test (Lowe's):</strong> Only accept match if best match is significantly better than second-best: <code>d1 / d2 &lt; 0.75</code>. Removes ambiguous matches.</li>
     </ul>
 
@@ -202,7 +202,7 @@
       <div class="quiz-q" id="q3">
         <p>3. Lowe's ratio test rejects a match when d1/d2 > 0.75. Why?</p>
         <label><input type="radio" name="q3" value="a"> The match is too fast to compute</label>
-        <label><input type="radio" name="q3" value="b"> There's another descriptor nearly as similar — the match is ambiguous</label>
+        <label><input type="radio" name="q3" value="b"> There's another descriptor nearly as similar - the match is ambiguous</label>
         <label><input type="radio" name="q3" value="c"> The descriptor is out of bounds</label>
         <label><input type="radio" name="q3" value="d"> The keypoint is too close to the image border</label>
       </div>

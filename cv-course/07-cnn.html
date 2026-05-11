@@ -38,18 +38,18 @@
 
   <main class="lesson-content">
     <h1>Convolutional Neural Networks</h1>
-    <p class="subtitle">Module 7 — Layers, Pooling, Activations, Feature Maps</p>
+    <p class="subtitle">Module 7 - Layers, Pooling, Activations, Feature Maps</p>
 
     <h2 id="why-cnn">Why CNNs for Vision?</h2>
     <p>
-      A fully connected (FC) network on a 224×224 RGB image would need 150,528 input neurons. That's enormous — too many parameters, too much compute, and no spatial structure is exploited.
+      A fully connected (FC) network on a 224×224 RGB image would need 150,528 input neurons. That's enormous - too many parameters, too much compute, and no spatial structure is exploited.
     </p>
     <p>
       CNNs solve this with three key ideas:
     </p>
     <ul>
       <li><strong>Local connectivity:</strong> Each neuron only sees a small patch (receptive field)</li>
-      <li><strong>Parameter sharing:</strong> The same filter slides across the whole image — one filter learns one feature everywhere</li>
+      <li><strong>Parameter sharing:</strong> The same filter slides across the whole image - one filter learns one feature everywhere</li>
       <li><strong>Spatial hierarchy:</strong> Early layers detect edges → middle layers find shapes → deep layers recognize objects</li>
     </ul>
 
@@ -61,12 +61,12 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>H'</td><td>output height (or width — same formula applies to both) after the conv layer</td></tr>
+        <tr><td>H'</td><td>output height (or width - same formula applies to both) after the conv layer</td></tr>
         <tr><td>H</td><td>input height in pixels before this layer</td></tr>
-        <tr><td>k</td><td>kernel size — the height/width of the square filter, e.g. k=3 for a 3×3 kernel</td></tr>
-        <tr><td>P</td><td>padding — rows/columns of zeros added to the border; P=(k-1)/2 keeps H' = H</td></tr>
+        <tr><td>k</td><td>kernel size - the height/width of the square filter, e.g. k=3 for a 3×3 kernel</td></tr>
+        <tr><td>P</td><td>padding - rows/columns of zeros added to the border; P=(k-1)/2 keeps H' = H</td></tr>
         <tr><td>2P</td><td>total padding added (P rows on each side, so double)</td></tr>
-        <tr><td>S</td><td>stride — how many pixels the kernel jumps each step; S=1 is dense, S=2 halves the output size</td></tr>
+        <tr><td>S</td><td>stride - how many pixels the kernel jumps each step; S=1 is dense, S=2 halves the output size</td></tr>
         <tr><td>+1</td><td>accounts for the first kernel position at the top-left corner</td></tr>
       </table>
     </div>
@@ -122,9 +122,9 @@
       <div id="arch-info" class="callout" style="margin-top:1rem; min-height:60px;">Click a layer above to see details.</div>
     </div>
 
-    <h2 id="feature-maps">Feature Maps — What Does Each Layer See?</h2>
+    <h2 id="feature-maps">Feature Maps - What Does Each Layer See?</h2>
     <p>
-      Early layers in a CNN learn to detect simple patterns — edges, blobs, color gradients — because these are the patterns that differ between training examples. Deep layers combine these into complex, task-specific features.
+      Early layers in a CNN learn to detect simple patterns - edges, blobs, color gradients - because these are the patterns that differ between training examples. Deep layers combine these into complex, task-specific features.
     </p>
     <div class="demo-box">
       <h3>Simulated Feature Map Responses</h3>
@@ -289,7 +289,7 @@ const layers = [
   {name:'Conv2\n3×3, 128', color:'#7c6af7', info:'Second conv layer: 128 filters. Learns mid-level features: corners, curves, textures. Output: 112×112×128.'},
   {name:'ReLU', color:'#27ae60', info:'ReLU activation again. Deeper networks need nonlinearities at every layer.'},
   {name:'MaxPool\n2×2', color:'#8e44ad', info:'Pooling again. Output: 56×56×128.'},
-  {name:'Conv3\n3×3, 256', color:'#7c6af7', info:'Deeper conv: 256 filters. Features become more abstract — parts of objects.'},
+  {name:'Conv3\n3×3, 256', color:'#7c6af7', info:'Deeper conv: 256 filters. Features become more abstract - parts of objects.'},
   {name:'Flatten', color:'#c0392b', info:'Flatten spatial dims: convert 56×56×256 tensor to a 802,816-dim vector. Connects to FC layers.'},
   {name:'FC 1024', color:'#e67e22', info:'Fully connected layer: 1024 neurons. Combines all features globally. Dense feature representation.'},
   {name:'Dropout\n0.5', color:'#7f8c8d', info:'Randomly zeros 50% of neurons during training. Prevents overfitting by forcing redundant representations.'},

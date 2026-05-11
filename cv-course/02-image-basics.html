@@ -37,14 +37,14 @@
 
   <main class="lesson-content">
     <h1>Image Basics</h1>
-    <p class="subtitle">Module 2 — Pixels, Color Spaces, and Histograms</p>
+    <p class="subtitle">Module 2 - Pixels, Color Spaces, and Histograms</p>
 
     <h2 id="pixels">Pixels and Channels</h2>
     <p>
-      A digital image is a 2D array of pixels. Each pixel holds a value representing light intensity. For a <strong>grayscale</strong> image, one number per pixel (0 = black, 255 = white). For <strong>color images</strong>, three numbers per pixel — one per channel.
+      A digital image is a 2D array of pixels. Each pixel holds a value representing light intensity. For a <strong>grayscale</strong> image, one number per pixel (0 = black, 255 = white). For <strong>color images</strong>, three numbers per pixel - one per channel.
     </p>
     <p>
-      In memory, a 640×480 RGB image is stored as a 3D tensor of shape <code>(480, 640, 3)</code> — height × width × channels.
+      In memory, a 640×480 RGB image is stored as a 3D tensor of shape <code>(480, 640, 3)</code> - height × width × channels.
     </p>
 
     <div class="demo-box" id="pixels">
@@ -64,11 +64,11 @@
     <h2 id="colorspaces">Color Spaces</h2>
     <p>Different color spaces represent color in different ways. The choice affects what operations are easy or hard.</p>
     <ul>
-      <li><strong>RGB</strong> — Red, Green, Blue. How screens emit light. Not perceptually uniform.</li>
-      <li><strong>Grayscale</strong> — Luminance only. Computed as: <code>0.299R + 0.587G + 0.114B</code></li>
-      <li><strong>HSV</strong> — Hue, Saturation, Value. Hue = color type (0–360°). Great for color-based segmentation.</li>
-      <li><strong>Lab (CIELAB)</strong> — Perceptually uniform. L = lightness, a = green↔red, b = blue↔yellow. Used in professional color matching.</li>
-      <li><strong>YCbCr</strong> — Luminance (Y) + chrominance. Used in JPEG compression and video.</li>
+      <li><strong>RGB</strong> - Red, Green, Blue. How screens emit light. Not perceptually uniform.</li>
+      <li><strong>Grayscale</strong> - Luminance only. Computed as: <code>0.299R + 0.587G + 0.114B</code></li>
+      <li><strong>HSV</strong> - Hue, Saturation, Value. Hue = color type (0–360°). Great for color-based segmentation.</li>
+      <li><strong>Lab (CIELAB)</strong> - Perceptually uniform. L = lightness, a = green↔red, b = blue↔yellow. Used in professional color matching.</li>
+      <li><strong>YCbCr</strong> - Luminance (Y) + chrominance. Used in JPEG compression and video.</li>
     </ul>
 
     <div class="demo-box" id="demo-color">
@@ -145,12 +145,12 @@
     <div class="formula-breakdown">
       <div class="fb-title">Symbol guide</div>
       <table>
-        <tr><td>CDF(v)</td><td>Cumulative Distribution Function at value v — how many pixels have intensity ≤ v</td></tr>
+        <tr><td>CDF(v)</td><td>Cumulative Distribution Function at value v - how many pixels have intensity ≤ v</td></tr>
         <tr><td>v</td><td>a specific pixel intensity level, from 0 (black) to 255 (white)</td></tr>
-        <tr><td>Σ (sigma)</td><td>summation — add up all the terms that follow</td></tr>
-        <tr><td>hist(i)</td><td>histogram count — how many pixels in the image have intensity exactly equal to i</td></tr>
+        <tr><td>Σ (sigma)</td><td>summation - add up all the terms that follow</td></tr>
+        <tr><td>hist(i)</td><td>histogram count - how many pixels in the image have intensity exactly equal to i</td></tr>
         <tr><td>i = 0..v</td><td>loop variable: sum from intensity 0 up to and including intensity v</td></tr>
-        <tr><td>CDF(v) / total_pixels × 255</td><td>remapping step — scales the cumulative count to the 0–255 output range</td></tr>
+        <tr><td>CDF(v) / total_pixels × 255</td><td>remapping step - scales the cumulative count to the 0–255 output range</td></tr>
       </table>
     </div>
     <p style="font-size:0.82rem; color:var(--muted);">The equalized value of a pixel v is: <code>round(CDF(v) / total_pixels × 255)</code></p>
