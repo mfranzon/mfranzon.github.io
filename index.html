@@ -468,41 +468,26 @@
                 mask-image: linear-gradient(270deg, #000 30%, transparent 100%);
                 -webkit-mask-image: linear-gradient(270deg, #000 30%, transparent 100%);
             }
-            .datacenter-visual {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                grid-template-rows: repeat(2, 1fr);
-                gap: 6px;
-                padding: 22px;
+            .circuit-visual { padding: 0; }
+            .circuit-visual svg {
+                width: 100%; height: 100%;
+                display: block;
             }
-            .datacenter-visual span {
-                background: linear-gradient(180deg, #1a2a55 0%, #0d1430 100%);
-                border: 1px solid rgba(122, 162, 255, 0.25);
-                border-radius: 4px;
-                position: relative;
-                overflow: hidden;
+            .circuit-visual .chip {
+                animation: chipGlow 3s ease-in-out infinite;
             }
-            .datacenter-visual span::before {
-                content: '';
-                position: absolute;
-                inset: 4px;
-                background: repeating-linear-gradient(
-                    180deg,
-                    rgba(122, 162, 255, 0.4) 0 2px,
-                    transparent 2px 5px
-                );
-                animation: rackBlink 2s ease-in-out infinite;
+            @keyframes chipGlow {
+                0%, 100% { stroke-opacity: 0.6; }
+                50%      { stroke-opacity: 1; filter: drop-shadow(0 0 4px #7aa2ff); }
             }
-            .datacenter-visual span:nth-child(2)::before { animation-delay: 0.3s; }
-            .datacenter-visual span:nth-child(3)::before { animation-delay: 0.6s; }
-            .datacenter-visual span:nth-child(4)::before { animation-delay: 0.9s; }
-            .datacenter-visual span:nth-child(5)::before { animation-delay: 0.15s; }
-            .datacenter-visual span:nth-child(6)::before { animation-delay: 0.45s; }
-            .datacenter-visual span:nth-child(7)::before { animation-delay: 0.75s; }
-            .datacenter-visual span:nth-child(8)::before { animation-delay: 1.05s; }
-            @keyframes rackBlink {
-                0%, 100% { opacity: 0.6; }
-                50%      { opacity: 1; }
+            .circuit-visual .pulse {
+                animation: chipPulse 1.8s ease-in-out infinite;
+                transform-origin: center;
+                transform-box: fill-box;
+            }
+            @keyframes chipPulse {
+                0%, 100% { opacity: 0.4; transform: scale(0.6); }
+                50%      { opacity: 1;   transform: scale(1.4); }
             }
 
             .project-card.featured h3,
@@ -886,38 +871,77 @@
             <h2>Projects</h2>
             <div class="projects-grid">
                 <a
-                    href="https://github.com/2listic/datacenter-planner"
+                    href="https://github.com/mfranzon/circuitiny"
                     target="_blank"
                     class="project-card featured"
                 >
-                    <div class="card-visual datacenter-visual" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
-                        <span></span><span></span><span></span><span></span>
+                    <div class="card-visual circuit-visual" aria-hidden="true">
+                        <svg viewBox="0 0 200 160" preserveAspectRatio="xMidYMid slice">
+                            <defs>
+                                <linearGradient id="trace" x1="0" x2="1" y1="0" y2="0">
+                                    <stop offset="0" stop-color="#7aa2ff" stop-opacity="0"/>
+                                    <stop offset="0.5" stop-color="#7aa2ff" stop-opacity="1"/>
+                                    <stop offset="1" stop-color="#7aa2ff" stop-opacity="0"/>
+                                </linearGradient>
+                            </defs>
+                            <g stroke="rgba(122,162,255,0.35)" stroke-width="1" fill="none">
+                                <path d="M0 40 L60 40 L70 50 L130 50 L140 60 L200 60"/>
+                                <path d="M0 80 L40 80 L50 70 L110 70 L120 80 L200 80"/>
+                                <path d="M0 120 L80 120 L90 110 L160 110 L170 120 L200 120"/>
+                                <path d="M30 0 L30 40"/>
+                                <path d="M90 0 L90 50"/>
+                                <path d="M150 60 L150 110"/>
+                                <path d="M60 80 L60 120"/>
+                            </g>
+                            <g fill="#7aa2ff">
+                                <circle cx="30" cy="40" r="2.5"/>
+                                <circle cx="70" cy="50" r="2.5"/>
+                                <circle cx="130" cy="50" r="2.5"/>
+                                <circle cx="50" cy="70" r="2.5"/>
+                                <circle cx="120" cy="80" r="2.5"/>
+                                <circle cx="90" cy="110" r="2.5"/>
+                                <circle cx="170" cy="120" r="2.5"/>
+                            </g>
+                            <rect class="chip" x="78" y="60" width="44" height="40" rx="3"
+                                fill="#0d1430" stroke="#7aa2ff" stroke-width="1.2"/>
+                            <g fill="#3b82f6">
+                                <rect x="82" y="68" width="3" height="3"/>
+                                <rect x="115" y="68" width="3" height="3"/>
+                                <rect x="82" y="89" width="3" height="3"/>
+                                <rect x="115" y="89" width="3" height="3"/>
+                            </g>
+                            <circle class="pulse" cx="100" cy="80" r="3" fill="#a8c4ff"/>
+                        </svg>
                     </div>
-                    <h3>Datacenter Planner</h3>
+                    <h3>Circuitiny</h3>
                     <p>
-                        Design data centers from a 2D plan — place racks and
-                        cooling systems in a detailed 3D scene. Built with Three.js.
+                        Local-first, AI-assisted circuit design. Wire components
+                        in 3D, describe what you want, and the agent writes the
+                        ESP-IDF firmware and simulates it — all before you touch
+                        a chip.
                     </p>
                     <div class="tech">
-                        <span class="tag">Three.js</span>
+                        <span class="tag">TypeScript</span>
+                        <span class="tag">AI Agent</span>
+                        <span class="tag">ESP32</span>
                         <span class="tag">3D</span>
-                        <span class="tag">JavaScript</span>
                     </div>
                 </a>
                 <a
-                    href="https://github.com/2listic/agentic-viz"
+                    href="https://github.com/mfranzon/render"
                     target="_blank"
                     class="project-card"
                 >
-                    <h3>Agentic Viz</h3>
+                    <h3>/render</h3>
                     <p>
-                        Visualizer for agentic markdown planner — turn agent
-                        plans into interactive diagrams.
+                        A Claude Code skill that turns plain English into 3D
+                        models — build123d Python under the hood, rendered live
+                        in your browser.
                     </p>
                     <div class="tech">
-                        <span class="tag">Agents</span>
-                        <span class="tag">Visualization</span>
+                        <span class="tag">Claude Code</span>
+                        <span class="tag">build123d</span>
+                        <span class="tag">3D</span>
                     </div>
                 </a>
                 <a
