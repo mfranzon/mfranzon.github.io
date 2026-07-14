@@ -1,417 +1,884 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Model Garden - finetuned computer-vision models</title>
-<meta name="description" content="A personal showcase of finetuned computer-vision models: detection, segmentation and tracking, each with a live demo, the recipe, and a one-command run.">
-<style>
-  :root{
-    color-scheme: light dark;
-    --ground:#0b0e12; --surface:#12171d; --surface-2:#0e1319;
-    --line:#26303a; --line-soft:#1a222b;
-    --text:#e2eaf1; --muted:#8b99a6;
-    --signal:#37d6c8; --signal-ink:#062b28;
-    --warn:#ffb020;
-    --danger:#ff5c49;
-    --radius:14px;
-    --maxw:1140px;
-    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, "Cascadia Mono", "Roboto Mono", monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
-  }
-  @media (prefers-color-scheme: light){
-    :root{
-      --ground:#eceff2; --surface:#ffffff; --surface-2:#f4f6f8;
-      --line:#d3dae0; --line-soft:#e4e9ed;
-      --text:#101821; --muted:#5a6672;
-      --signal:#0f9e93; --signal-ink:#e2fbf7;
-      --warn:#b06f00; --danger:#c8321f;
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Model Garden - finetuned computer-vision models</title>
+  <meta name="description"
+    content="A personal showcase of finetuned computer-vision models: detection, segmentation and tracking, each with a live demo, the recipe, and a one-command run.">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ground: #0b0e12;
+      --surface: #12171d;
+      --surface-2: #0e1319;
+      --line: #26303a;
+      --line-soft: #1a222b;
+      --text: #e2eaf1;
+      --muted: #8b99a6;
+      --signal: #37d6c8;
+      --signal-ink: #062b28;
+      --warn: #ffb020;
+      --danger: #ff5c49;
+      --radius: 14px;
+      --maxw: 1140px;
+      --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, "Cascadia Mono", "Roboto Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
     }
-  }
-  :root[data-theme="dark"]{
-    color-scheme: dark;
-    --ground:#0b0e12; --surface:#12171d; --surface-2:#0e1319;
-    --line:#26303a; --line-soft:#1a222b;
-    --text:#e2eaf1; --muted:#8b99a6;
-    --signal:#37d6c8; --signal-ink:#062b28; --warn:#ffb020; --danger:#ff5c49;
-  }
-  :root[data-theme="light"]{
-    color-scheme: light;
-    --ground:#eceff2; --surface:#ffffff; --surface-2:#f4f6f8;
-    --line:#d3dae0; --line-soft:#e4e9ed;
-    --text:#101821; --muted:#5a6672;
-    --signal:#0f9e93; --signal-ink:#e2fbf7; --warn:#b06f00; --danger:#c8321f;
-  }
 
-  *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    margin:0; background:var(--ground); color:var(--text);
-    font-family:var(--sans); line-height:1.6;
-    font-size:16px; letter-spacing:.1px;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
-  a{color:inherit}
+    @media (prefers-color-scheme: light) {
+      :root {
+        --ground: #eceff2;
+        --surface: #ffffff;
+        --surface-2: #f4f6f8;
+        --line: #d3dae0;
+        --line-soft: #e4e9ed;
+        --text: #101821;
+        --muted: #5a6672;
+        --signal: #0f9e93;
+        --signal-ink: #e2fbf7;
+        --warn: #b06f00;
+        --danger: #c8321f;
+      }
+    }
 
-  .eyebrow{
-    font-family:var(--mono); font-size:12px; letter-spacing:.22em;
-    text-transform:uppercase; color:var(--signal); margin:0;
-  }
-  .mono{font-family:var(--mono)}
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --ground: #0b0e12;
+      --surface: #12171d;
+      --surface-2: #0e1319;
+      --line: #26303a;
+      --line-soft: #1a222b;
+      --text: #e2eaf1;
+      --muted: #8b99a6;
+      --signal: #37d6c8;
+      --signal-ink: #062b28;
+      --warn: #ffb020;
+      --danger: #ff5c49;
+    }
 
-  /* ---------- Header / hero ---------- */
-  header.hero{
-    position:relative; overflow:hidden;
-    border-bottom:1px solid var(--line);
-    background:
-      radial-gradient(120% 90% at 82% -10%, color-mix(in oklab, var(--signal) 14%, transparent), transparent 60%),
-      var(--surface-2);
-  }
-  .hero .scan{
-    position:absolute; inset:0; pointer-events:none; opacity:.5;
-    background-image:linear-gradient(to bottom, transparent 0 3px, color-mix(in oklab, var(--line) 55%, transparent) 3px 4px);
-    background-size:100% 4px;
-    mask-image:linear-gradient(to bottom, black, transparent 70%);
-    -webkit-mask-image:linear-gradient(to bottom, black, transparent 70%);
-  }
-  .topbar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:20px 0; position:relative; z-index:2;
-  }
-  .brandmark{display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-weight:600; letter-spacing:.04em; text-decoration:none; color:inherit}
-  .dot{width:9px; height:9px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 4px color-mix(in oklab, var(--signal) 22%, transparent)}
-  .theme-toggle{
-    font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
-    background:transparent; color:var(--muted); border:1px solid var(--line);
-    padding:7px 12px; border-radius:8px; cursor:pointer;
-  }
-  .theme-toggle:hover{color:var(--text); border-color:var(--signal)}
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --ground: #eceff2;
+      --surface: #ffffff;
+      --surface-2: #f4f6f8;
+      --line: #d3dae0;
+      --line-soft: #e4e9ed;
+      --text: #101821;
+      --muted: #5a6672;
+      --signal: #0f9e93;
+      --signal-ink: #e2fbf7;
+      --warn: #b06f00;
+      --danger: #c8321f;
+    }
 
-  .hero-inner{position:relative; z-index:2; padding:46px 0 60px}
-  h1{
-    font-family:var(--mono); font-weight:600;
-    font-size:clamp(2rem, 5.2vw, 3.4rem); line-height:1.05; letter-spacing:-.01em;
-    margin:.5rem 0 0; text-wrap:balance; max-width:16ch;
-  }
-  h1 .accent{color:var(--signal)}
-  .lede{max-width:60ch; color:var(--muted); font-size:1.075rem; margin:1.1rem 0 0}
-  .lede strong{color:var(--text); font-weight:600}
-  .hero-meta{
-    display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:26px;
-    font-family:var(--mono); font-size:12.5px; color:var(--muted); letter-spacing:.03em;
-  }
-  .hero-meta b{color:var(--text); font-weight:600}
+    * {
+      box-sizing: border-box
+    }
 
-  /* ---------- Models ---------- */
-  main{padding:56px 0 40px}
-  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:26px}
-  .section-head h2{font-family:var(--mono); font-weight:600; font-size:1rem; letter-spacing:.04em; margin:0}
-  .count{font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:.1em}
+    html {
+      -webkit-text-size-adjust: 100%
+    }
 
-  .filters{display:flex; flex-wrap:wrap; gap:9px; margin-bottom:28px}
-  .chip{
-    font-family:var(--mono); font-size:12px; letter-spacing:.04em;
-    background:var(--surface); color:var(--muted); border:1px solid var(--line);
-    padding:7px 13px; border-radius:20px; cursor:pointer; transition:color .12s, border-color .12s, background .12s;
-    display:inline-flex; align-items:center; gap:7px;
-  }
-  .chip:hover{color:var(--text); border-color:var(--signal)}
-  .chip .chip-n{font-size:10.5px; color:var(--muted); background:var(--surface-2); border-radius:20px; padding:1px 7px; font-variant-numeric:tabular-nums}
-  .chip.is-active{
-    color:var(--signal-ink); background:var(--signal); border-color:var(--signal); font-weight:600;
-  }
-  .chip.is-active .chip-n{color:var(--signal); background:color-mix(in oklab, var(--signal-ink) 55%, transparent)}
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      font-size: 16px;
+      letter-spacing: .1px;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  .cards{display:flex; flex-direction:column; gap:30px}
-  .card[hidden]{display:none}
-  .card{
-    display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    overflow:hidden;
-  }
-  .card:nth-child(even){grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
-  .card:nth-child(even) .viewport{order:2; border-left:1px solid var(--line); border-right:0}
+    .wrap {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 24px
+    }
 
-  /* viewport (video framed like a detection feed) */
-  .viewport{
-    position:relative; background:#05070a; border-right:1px solid var(--line);
-    min-height:260px; display:flex;
-  }
-  .viewport video{width:100%; height:100%; object-fit:cover; display:block}
-  .brackets{position:absolute; inset:14px; pointer-events:none}
-  .brackets span{position:absolute; width:24px; height:24px; border:2px solid var(--signal); opacity:.9}
-  .brackets .tl{top:0;left:0;border-right:0;border-bottom:0}
-  .brackets .tr{top:0;right:0;border-left:0;border-bottom:0}
-  .brackets .bl{bottom:0;left:0;border-right:0;border-top:0}
-  .brackets .br{bottom:0;right:0;border-left:0;border-top:0}
-  .conf{
-    position:absolute; left:20px; top:20px; z-index:2;
-    font-family:var(--mono); font-size:11px; letter-spacing:.08em;
-    background:color-mix(in oklab, var(--signal) 88%, black); color:var(--signal-ink);
-    padding:4px 9px; border-radius:5px; font-weight:600;
-    display:inline-flex; align-items:center; gap:7px;
-  }
-  .conf .rec{width:7px;height:7px;border-radius:50%;background:var(--danger)}
+    a {
+      color: inherit
+    }
 
-  /* spec panel */
-  .spec{padding:28px 30px 30px; display:flex; flex-direction:column; min-width:0}
-  .spec .task-tag{
-    align-self:flex-start; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--signal); border:1px solid color-mix(in oklab, var(--signal) 40%, var(--line));
-    padding:3px 9px; border-radius:20px; margin-bottom:14px;
-  }
-  .spec h3{font-family:var(--mono); font-size:1.4rem; font-weight:600; margin:0 0 6px; letter-spacing:-.01em}
-  .spec p.desc{margin:0 0 18px; color:var(--muted); font-size:.95rem}
-  .spec p.desc b{color:var(--text); font-weight:600}
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin: 0;
+    }
 
-  dl.facts{
-    display:grid; grid-template-columns:auto 1fr; gap:8px 18px; margin:0 0 20px;
-    font-size:13.5px; border-top:1px solid var(--line-soft); padding-top:16px;
-  }
-  dl.facts dt{font-family:var(--mono); color:var(--muted); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; align-self:center}
-  dl.facts dd{margin:0; font-family:var(--mono); color:var(--text); font-size:13px; overflow-wrap:anywhere}
-  dl.facts dd .num{color:var(--warn); font-variant-numeric:tabular-nums}
+    .mono {
+      font-family: var(--mono)
+    }
 
-  .links{display:flex; flex-wrap:wrap; gap:9px 12px; margin-top:auto; font-family:var(--mono); font-size:12.5px}
-  .links a{color:var(--signal); text-decoration:none; border-bottom:1px solid color-mix(in oklab, var(--signal) 45%, transparent); padding-bottom:1px}
-  .links a:hover{border-bottom-color:var(--signal)}
-  .links a.weights{
-    border-bottom:0; font-weight:600;
-    background:color-mix(in oklab, var(--signal) 16%, transparent);
-    border:1px solid color-mix(in oklab, var(--signal) 45%, var(--line));
-    padding:7px 12px; border-radius:8px;
-  }
-  .links a.weights:hover{background:color-mix(in oklab, var(--signal) 26%, transparent)}
-  .links span{color:var(--muted)}
+    /* ---------- Header / hero ---------- */
+    header.hero {
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(120% 90% at 82% -10%, color-mix(in oklab, var(--signal) 14%, transparent), transparent 60%),
+        var(--surface-2);
+    }
 
-  /* pager + empty */
-  .pager{display:flex; align-items:center; justify-content:center; gap:18px; margin-top:34px}
-  .pg-btn{
-    font-family:var(--mono); font-size:12px; letter-spacing:.06em;
-    background:var(--surface); color:var(--text); border:1px solid var(--line);
-    padding:8px 14px; border-radius:8px; cursor:pointer;
-  }
-  .pg-btn:hover:not(:disabled){border-color:var(--signal); color:var(--signal)}
-  .pg-btn:disabled{opacity:.4; cursor:not-allowed}
-  .pg-info{font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:.06em; font-variant-numeric:tabular-nums}
-  .empty{font-family:var(--mono); color:var(--muted); text-align:center; padding:40px 0}
+    .hero .scan {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .5;
+      background-image: linear-gradient(to bottom, transparent 0 3px, color-mix(in oklab, var(--line) 55%, transparent) 3px 4px);
+      background-size: 100% 4px;
+      mask-image: linear-gradient(to bottom, black, transparent 70%);
+      -webkit-mask-image: linear-gradient(to bottom, black, transparent 70%);
+    }
 
-  /* ---------- footer ---------- */
-  footer{border-top:1px solid var(--line); margin-top:40px; padding:34px 0 60px; color:var(--muted)}
-  footer .wrap{display:flex; flex-wrap:wrap; gap:14px 30px; align-items:baseline; justify-content:space-between}
-  footer p{margin:0; font-size:13.5px; max-width:58ch}
-  footer .mono{font-size:12px; letter-spacing:.06em}
-  footer a{color:var(--signal)}
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      position: relative;
+      z-index: 2;
+    }
 
-  :focus-visible{outline:2px solid var(--signal); outline-offset:2px; border-radius:4px}
+    .brandmark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-decoration: none;
+      color: inherit
+    }
 
-  @media (max-width:820px){
-    .card, .card:nth-child(even){grid-template-columns:1fr}
-    .card:nth-child(even) .viewport{order:0; border-left:0; border-right:0}
-    .viewport{border-right:0; border-bottom:1px solid var(--line); min-height:0; aspect-ratio:16/10}
-    .hero-inner{padding:34px 0 44px}
-  }
-  @media (prefers-reduced-motion: reduce){
-    *{animation:none !important}
-    .hero .scan{display:none}
-  }
-</style>
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--signal) 22%, transparent)
+    }
+
+    .theme-toggle {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 7px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--signal)
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      padding: 46px 0 60px
+    }
+
+    h1 {
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: clamp(2rem, 5.2vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: -.01em;
+      margin: .5rem 0 0;
+      text-wrap: balance;
+      max-width: 16ch;
+    }
+
+    h1 .accent {
+      color: var(--signal)
+    }
+
+    .lede {
+      max-width: 60ch;
+      color: var(--muted);
+      font-size: 1.075rem;
+      margin: 1.1rem 0 0
+    }
+
+    .lede strong {
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 26px;
+      margin-top: 26px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--muted);
+      letter-spacing: .03em;
+    }
+
+    .hero-meta b {
+      color: var(--text);
+      font-weight: 600
+    }
+
+    /* ---------- Models ---------- */
+    main {
+      padding: 56px 0 40px
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px
+    }
+
+    .section-head h2 {
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: .04em;
+      margin: 0
+    }
+
+    .count {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .1em
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-bottom: 28px
+    }
+
+    .chip {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .04em;
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 7px 13px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: color .12s, border-color .12s, background .12s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .chip:hover {
+      color: var(--text);
+      border-color: var(--signal)
+    }
+
+    .chip .chip-n {
+      font-size: 10.5px;
+      color: var(--muted);
+      background: var(--surface-2);
+      border-radius: 20px;
+      padding: 1px 7px;
+      font-variant-numeric: tabular-nums
+    }
+
+    .chip.is-active {
+      color: var(--signal-ink);
+      background: var(--signal);
+      border-color: var(--signal);
+      font-weight: 600;
+    }
+
+    .chip.is-active .chip-n {
+      color: var(--signal);
+      background: color-mix(in oklab, var(--signal-ink) 55%, transparent)
+    }
+
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 30px
+    }
+
+    .card[hidden] {
+      display: none
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .card:nth-child(even) {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr)
+    }
+
+    .card:nth-child(even) .viewport {
+      order: 2;
+      border-left: 1px solid var(--line);
+      border-right: 0
+    }
+
+    /* viewport (video framed like a detection feed) */
+    .viewport {
+      position: relative;
+      background: #05070a;
+      border-right: 1px solid var(--line);
+      min-height: 260px;
+      display: flex;
+    }
+
+    .viewport video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block
+    }
+
+    .brackets {
+      position: absolute;
+      inset: 14px;
+      pointer-events: none
+    }
+
+    .brackets span {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--signal);
+      opacity: .9
+    }
+
+    .brackets .tl {
+      top: 0;
+      left: 0;
+      border-right: 0;
+      border-bottom: 0
+    }
+
+    .brackets .tr {
+      top: 0;
+      right: 0;
+      border-left: 0;
+      border-bottom: 0
+    }
+
+    .brackets .bl {
+      bottom: 0;
+      left: 0;
+      border-right: 0;
+      border-top: 0
+    }
+
+    .brackets .br {
+      bottom: 0;
+      right: 0;
+      border-left: 0;
+      border-top: 0
+    }
+
+    .conf {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      z-index: 2;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .08em;
+      background: color-mix(in oklab, var(--signal) 88%, black);
+      color: var(--signal-ink);
+      padding: 4px 9px;
+      border-radius: 5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .conf .rec {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--danger)
+    }
+
+    /* spec panel */
+    .spec {
+      padding: 28px 30px 30px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0
+    }
+
+    .spec .task-tag {
+      align-self: flex-start;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--signal);
+      border: 1px solid color-mix(in oklab, var(--signal) 40%, var(--line));
+      padding: 3px 9px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .spec h3 {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 0 0 6px;
+      letter-spacing: -.01em
+    }
+
+    .spec p.desc {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: .95rem
+    }
+
+    .spec p.desc b {
+      color: var(--text);
+      font-weight: 600
+    }
+
+    dl.facts {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 18px;
+      margin: 0 0 20px;
+      font-size: 13.5px;
+      border-top: 1px solid var(--line-soft);
+      padding-top: 16px;
+    }
+
+    dl.facts dt {
+      font-family: var(--mono);
+      color: var(--muted);
+      font-size: 11.5px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      align-self: center
+    }
+
+    dl.facts dd {
+      margin: 0;
+      font-family: var(--mono);
+      color: var(--text);
+      font-size: 13px;
+      overflow-wrap: anywhere
+    }
+
+    dl.facts dd .num {
+      color: var(--warn);
+      font-variant-numeric: tabular-nums
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px 12px;
+      margin-top: auto;
+      font-family: var(--mono);
+      font-size: 12.5px
+    }
+
+    .links a {
+      color: var(--signal);
+      text-decoration: none;
+      border-bottom: 1px solid color-mix(in oklab, var(--signal) 45%, transparent);
+      padding-bottom: 1px
+    }
+
+    .links a:hover {
+      border-bottom-color: var(--signal)
+    }
+
+    .links a.weights {
+      border-bottom: 0;
+      font-weight: 600;
+      background: color-mix(in oklab, var(--signal) 16%, transparent);
+      border: 1px solid color-mix(in oklab, var(--signal) 45%, var(--line));
+      padding: 7px 12px;
+      border-radius: 8px;
+    }
+
+    .links a.weights:hover {
+      background: color-mix(in oklab, var(--signal) 26%, transparent)
+    }
+
+    .links span {
+      color: var(--muted)
+    }
+
+    /* pager + empty */
+    .pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 34px
+    }
+
+    .pg-btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .06em;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .pg-btn:hover:not(:disabled) {
+      border-color: var(--signal);
+      color: var(--signal)
+    }
+
+    .pg-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed
+    }
+
+    .pg-info {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .06em;
+      font-variant-numeric: tabular-nums
+    }
+
+    .empty {
+      font-family: var(--mono);
+      color: var(--muted);
+      text-align: center;
+      padding: 40px 0
+    }
+
+    /* ---------- footer ---------- */
+    footer {
+      border-top: 1px solid var(--line);
+      margin-top: 40px;
+      padding: 34px 0 60px;
+      color: var(--muted)
+    }
+
+    footer .wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 30px;
+      align-items: baseline;
+      justify-content: space-between
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 13.5px;
+      max-width: 58ch
+    }
+
+    footer .mono {
+      font-size: 12px;
+      letter-spacing: .06em
+    }
+
+    footer a {
+      color: var(--signal)
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--signal);
+      outline-offset: 2px;
+      border-radius: 4px
+    }
+
+    @media (max-width:820px) {
+
+      .card,
+      .card:nth-child(even) {
+        grid-template-columns: 1fr
+      }
+
+      .card:nth-child(even) .viewport {
+        order: 0;
+        border-left: 0;
+        border-right: 0
+      }
+
+      .viewport {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        min-height: 0;
+        aspect-ratio: 16/10
+      }
+
+      .hero-inner {
+        padding: 34px 0 44px
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important
+      }
+
+      .hero .scan {
+        display: none
+      }
+    }
+  </style>
 </head>
+
 <body>
-<header class="hero">
-  <div class="scan" aria-hidden="true"></div>
-  <div class="wrap">
-    <nav class="topbar">
-      <a class="brandmark" href="/"><span class="dot"></span>model&#8202;garden</a>
-      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme">Theme</button>
-    </nav>
-  </div>
-  <div class="wrap hero-inner">
-    <p class="eyebrow">Finetuned computer-vision models</p>
-    <h1>Every model I train, with the <span class="accent">demo</span> that proves it.</h1>
-    <p class="lede">A running showcase of the detection, segmentation, and tracking models I finetune. Each one is shown <strong>working on real footage</strong>, with the recipe it was built from and a single command to run it on your own video. No sign-up, no upload: just the results and the code.</p>
-    <div class="hero-meta">
-      <span>MODELS <b>3</b></span>
-      <span>STACK <b><a href="https://github.com/computer-vision-with-marco/yolo-training-template">YOLO Training Template</a></b></span>
-      <span>RUNTIME <b>Apple Silicon / MPS</b></span>
-      <span>WEIGHTS <b>Hugging Face</b></span>
+  <header class="hero">
+    <div class="scan" aria-hidden="true"></div>
+    <div class="wrap">
+      <nav class="topbar">
+        <a class="brandmark" href="/"><span class="dot"></span>model&#8202;garden</a>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme">Theme</button>
+      </nav>
     </div>
-  </div>
-</header>
-
-<main class="wrap">
-  <div class="section-head">
-    <h2>// current models</h2>
-    <span class="count" id="resultCount">3 tracked &middot; updated 2026-07</span>
-  </div>
-
-  <div class="filters" id="filters" role="tablist" aria-label="Filter models by category">
-    <button class="chip is-active" type="button" data-cat="all" role="tab" aria-selected="true">All <span class="chip-n">3</span></button>
-    <button class="chip" type="button" data-cat="detection" role="tab" aria-selected="false">Detection <span class="chip-n">1</span></button>
-    <button class="chip" type="button" data-cat="segmentation" role="tab" aria-selected="false">Segmentation <span class="chip-n">1</span></button>
-    <button class="chip" type="button" data-cat="tracking" role="tab" aria-selected="false">Tracking <span class="chip-n">1</span></button>
-  </div>
-
-  <div class="cards" id="cards">
-
-    <!-- FIRE -->
-    <article class="card" data-category="detection">
-      <div class="viewport">
-        <span class="conf"><span class="rec"></span>fire 0.91 &middot; smoke 0.87</span>
-        <div class="brackets" aria-hidden="true"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
-        <video src="media/fire.mp4" poster="media/fire.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Early fire and smoke detection running on indoor footage"></video>
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Finetuned computer-vision models</p>
+      <h1>Every model I train, with the <span class="accent">demo</span> that proves it.</h1>
+      <p class="lede">A running showcase of the detection, segmentation, and tracking models I finetune. Each one is
+        shown <strong>working on real footage</strong>, with the recipe it was built from and a single command to run it
+        on your own video. No sign-up, no upload: just the results and the code.</p>
+      <div class="hero-meta">
+        <span>MODELS <b>3</b></span>
+        <span>STACK <b><a href="https://github.com/computer-vision-with-marco/yolo-training-template">YOLO Training
+              Template</a></b></span>
+        <span>RUNTIME <b>Apple Silicon / MPS</b></span>
+        <span>WEIGHTS <b>Hugging Face</b></span>
       </div>
-      <div class="spec">
-        <span class="task-tag">Detection + temporal alert</span>
-        <h3>Early Fire &amp; Smoke</h3>
-        <p class="desc">Tuned for <b>early domestic fire</b>: cooking, electrical, cigarettes. A temporal state machine escalates <b>clear, smoke present, early warning (growing smoke), fire confirmed</b>, so it alerts on persistent, growing smoke instead of a single noisy frame.</p>
-        <dl class="facts">
-          <dt>Base</dt><dd>YOLOv8n</dd>
-          <dt>Classes</dt><dd>fire, smoke</dd>
-          <dt>Data</dt><dd>D-Fire + Domestic Fire &amp; Smoke</dd>
-          <dt>Speed</dt><dd><span class="num">~70</span> FPS on MPS</dd>
-        </dl>
-        <div class="links">
-          <a class="weights" href="https://huggingface.co/mfranzon/models">&#8595; Weights on Hugging Face</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="section-head">
+      <h2>// current models</h2>
+      <span class="count" id="resultCount">3 tracked &middot; updated 2026-07</span>
+    </div>
+
+    <div class="filters" id="filters" role="tablist" aria-label="Filter models by category">
+      <button class="chip is-active" type="button" data-cat="all" role="tab" aria-selected="true">All <span
+          class="chip-n">3</span></button>
+      <button class="chip" type="button" data-cat="detection" role="tab" aria-selected="false">Detection <span
+          class="chip-n">1</span></button>
+      <button class="chip" type="button" data-cat="segmentation" role="tab" aria-selected="false">Segmentation <span
+          class="chip-n">1</span></button>
+      <button class="chip" type="button" data-cat="tracking" role="tab" aria-selected="false">Tracking <span
+          class="chip-n">1</span></button>
+    </div>
+
+    <div class="cards" id="cards">
+
+      <!-- FIRE -->
+      <article class="card" data-category="detection">
+        <div class="viewport">
+          <span class="conf"><span class="rec"></span>fire 0.91 &middot; smoke 0.87</span>
+          <div class="brackets" aria-hidden="true"><span class="tl"></span><span class="tr"></span><span
+              class="bl"></span><span class="br"></span></div>
+          <video src="media/fire.mp4" poster="media/fire.jpg" autoplay muted loop playsinline preload="metadata"
+            aria-label="Early fire and smoke detection running on indoor footage"></video>
         </div>
-      </div>
-    </article>
-
-    <!-- SOLAR -->
-    <article class="card" data-category="segmentation">
-      <div class="viewport">
-        <span class="conf"><span class="rec"></span>solar-panel 0.94</span>
-        <div class="brackets" aria-hidden="true"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
-        <video src="media/solar.mp4" poster="media/solar.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Solar panel instance segmentation on aerial drone footage"></video>
-      </div>
-      <div class="spec">
-        <span class="task-tag">Instance segmentation &middot; aerial</span>
-        <h3>Aerial Solar Panels</h3>
-        <p class="desc">Segments individual PV arrays from <b>drone and nadir aerial</b> imagery with tight masks on the panels themselves. On a Wikimedia solar-farm test it locked panels at <b>conf 0.90 to 0.97 on 6 of 8</b> shots, missing only very distant obliques.</p>
-        <dl class="facts">
-          <dt>Base</dt><dd>YOLOv8s-seg</dd>
-          <dt>Class</dt><dd>solar-panel</dd>
-          <dt>Source</dt><dd>finloop/yolov8s-seg-solar-panels</dd>
-          <dt>Hit rate</dt><dd><span class="num">6/8</span> aerial test set</dd>
-        </dl>
-        <div class="links">
-          <a class="weights" href="https://huggingface.co/finloop/yolov8s-seg-solar-panels">&#8595; Weights on Hugging Face</a>
+        <div class="spec">
+          <span class="task-tag">Detection + temporal alert</span>
+          <h3>Early Fire &amp; Smoke</h3>
+          <p class="desc">Tuned for <b>early domestic fire</b>: cooking, electrical, cigarettes. A temporal state
+            machine escalates <b>clear, smoke present, early warning (growing smoke), fire confirmed</b>, so it alerts
+            on persistent, growing smoke instead of a single noisy frame.</p>
+          <dl class="facts">
+            <dt>Base</dt>
+            <dd>YOLOv8n</dd>
+            <dt>Classes</dt>
+            <dd>fire, smoke</dd>
+            <dt>Data</dt>
+            <dd>D-Fire + Domestic Fire &amp; Smoke</dd>
+            <dt>Speed</dt>
+            <dd><span class="num">~70</span> FPS on MPS</dd>
+          </dl>
+          <div class="links">
+            <a class="weights" href="https://huggingface.co/mfranzon/fire-smoke-yolov8">&#8595; Weights on Hugging
+              Face</a>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
 
-    <!-- CELLS -->
-    <article class="card" data-category="tracking">
-      <div class="viewport">
-        <span class="conf"><span class="rec"></span>track &middot; 2 objects</span>
-        <div class="brackets" aria-hidden="true"><span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span></div>
-        <video src="media/cells.mp4" poster="media/cells.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Cell and bacterium segmentation and tracking in microscopy video"></video>
-      </div>
-      <div class="spec">
-        <span class="task-tag">Segment + track &middot; microscopy</span>
-        <h3>Cell &amp; Bacterium Tracking</h3>
-        <p class="desc">Class-agnostic tracking where pretrained detectors have no labels: a neutrophil chasing a bacterium. The pattern is <b>human-seed-then-propagate</b>. A few clicks lock the right object, then SAM2 propagates the rest autonomously. <b>No training required.</b></p>
-        <dl class="facts">
-          <dt>Base</dt><dd>SAM2 (tiny)</dd>
-          <dt>Task</dt><dd>video segment + track</dd>
-          <dt>Method</dt><dd>seed clicks, then propagate</dd>
-          <dt>Training</dt><dd><span class="num">0</span> labels / frame</dd>
-        </dl>
-        <div class="links">
-          <a class="weights" href="https://huggingface.co/facebook/sam2-hiera-tiny">&#8595; SAM2 tiny weights (Hugging Face)</a>
+      <!-- SOLAR -->
+      <article class="card" data-category="segmentation">
+        <div class="viewport">
+          <span class="conf"><span class="rec"></span>solar-panel 0.94</span>
+          <div class="brackets" aria-hidden="true"><span class="tl"></span><span class="tr"></span><span
+              class="bl"></span><span class="br"></span></div>
+          <video src="media/solar.mp4" poster="media/solar.jpg" autoplay muted loop playsinline preload="metadata"
+            aria-label="Solar panel instance segmentation on aerial drone footage"></video>
         </div>
-      </div>
-    </article>
+        <div class="spec">
+          <span class="task-tag">Instance segmentation &middot; aerial</span>
+          <h3>Aerial Solar Panels</h3>
+          <p class="desc">Segments individual PV arrays from <b>drone and nadir aerial</b> imagery with tight masks on
+            the panels themselves. On a Wikimedia solar-farm test it locked panels at <b>conf 0.90 to 0.97 on 6 of 8</b>
+            shots, missing only very distant obliques.</p>
+          <dl class="facts">
+            <dt>Base</dt>
+            <dd>YOLOv8s-seg</dd>
+            <dt>Class</dt>
+            <dd>solar-panel</dd>
+            <dt>Source</dt>
+            <dd>finloop/yolov8s-seg-solar-panels</dd>
+            <dt>Hit rate</dt>
+            <dd><span class="num">6/8</span> aerial test set</dd>
+          </dl>
+          <div class="links">
+            <a class="weights" href="https://huggingface.co/mfranzon/solar-panels-yolov8s-seg">&#8595; Weights on
+              Hugging Face</a>
+          </div>
+        </div>
+      </article>
 
-  </div>
+      <!-- CELLS -->
+      <article class="card" data-category="tracking">
+        <div class="viewport">
+          <span class="conf"><span class="rec"></span>track &middot; 2 objects</span>
+          <div class="brackets" aria-hidden="true"><span class="tl"></span><span class="tr"></span><span
+              class="bl"></span><span class="br"></span></div>
+          <video src="media/cells.mp4" poster="media/cells.jpg" autoplay muted loop playsinline preload="metadata"
+            aria-label="Cell and bacterium segmentation and tracking in microscopy video"></video>
+        </div>
+        <div class="spec">
+          <span class="task-tag">Segment + track &middot; microscopy</span>
+          <h3>Cell &amp; Bacterium Tracking</h3>
+          <p class="desc">Class-agnostic tracking where pretrained detectors have no labels: a neutrophil chasing a
+            bacterium. The pattern is <b>human-seed-then-propagate</b>. A few clicks lock the right object, then SAM2
+            propagates the rest autonomously. <b>No training required.</b></p>
+          <dl class="facts">
+            <dt>Base</dt>
+            <dd>SAM2 (tiny)</dd>
+            <dt>Task</dt>
+            <dd>video segment + track</dd>
+            <dt>Method</dt>
+            <dd>seed clicks, then propagate</dd>
+            <dt>Training</dt>
+            <dd><span class="num">0</span> labels / frame</dd>
+          </dl>
+          <div class="links">
+            <a class="weights" href="https://huggingface.co/mfranzon/sam2-tiny-tracking">&#8595; SAM2 tiny weights
+              (Hugging Face)</a>
+          </div>
+        </div>
+      </article>
 
-  <nav class="pager" id="pager" aria-label="Model pages" hidden>
-    <button class="pg-btn" id="prevPage" type="button">&#8592; Prev</button>
-    <span class="pg-info" id="pageInfo">Page 1 of 1</span>
-    <button class="pg-btn" id="nextPage" type="button">Next &#8594;</button>
-  </nav>
+    </div>
 
-  <p class="empty" id="empty" hidden>No models in this category yet.</p>
-</main>
+    <nav class="pager" id="pager" aria-label="Model pages" hidden>
+      <button class="pg-btn" id="prevPage" type="button">&#8592; Prev</button>
+      <span class="pg-info" id="pageInfo">Page 1 of 1</span>
+      <button class="pg-btn" id="nextPage" type="button">Next &#8594;</button>
+    </nav>
 
-<footer>
-  <div class="wrap">
-    <p>These are personal finetunes and reproducible recipes, shown result-first. Vision alone is never a life-safety system: the fire model is a research tool, not a substitute for a certified detector.</p>
-    <span class="mono">built with ultralytics &middot; more models landing soon</span>
-  </div>
-</footer>
+    <p class="empty" id="empty" hidden>No models in this category yet.</p>
+  </main>
 
-<script>
-  (function(){
-    var root = document.documentElement;
+  <footer>
+    <div class="wrap">
+      <p>These are personal finetunes and reproducible recipes, shown result-first. Vision alone is never a life-safety
+        system: the fire model is a research tool, not a substitute for a certified detector.</p>
+      <span class="mono">built with ultralytics &middot; more models landing soon</span>
+    </div>
+  </footer>
 
-    /* theme toggle */
-    document.getElementById('themeToggle').addEventListener('click', function(){
-      var current = root.getAttribute('data-theme');
-      if(!current){ current = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
-      root.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-    });
+  <script>
+    (function () {
+      var root = document.documentElement;
 
-    /* category filter + pagination (5 per page) */
-    var PAGE_SIZE = 5;
-    var cards = Array.prototype.slice.call(document.querySelectorAll('#cards .card'));
-    var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
-    var pager = document.getElementById('pager');
-    var prevBtn = document.getElementById('prevPage');
-    var nextBtn = document.getElementById('nextPage');
-    var pageInfo = document.getElementById('pageInfo');
-    var resultCount = document.getElementById('resultCount');
-    var emptyMsg = document.getElementById('empty');
-    var cat = 'all', page = 1;
-
-    /* live category counts on the chips */
-    chips.forEach(function(chip){
-      var c = chip.getAttribute('data-cat');
-      var n = c === 'all' ? cards.length : cards.filter(function(el){ return el.getAttribute('data-category') === c; }).length;
-      var badge = chip.querySelector('.chip-n');
-      if(badge) badge.textContent = n;
-    });
-
-    function matches(el){ return cat === 'all' || el.getAttribute('data-category') === cat; }
-
-    function render(){
-      var filtered = cards.filter(matches);
-      var pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-      if(page > pages) page = pages;
-      var start = (page - 1) * PAGE_SIZE;
-
-      cards.forEach(function(el){ el.hidden = true; });
-      filtered.slice(start, start + PAGE_SIZE).forEach(function(el){ el.hidden = false; });
-
-      emptyMsg.hidden = filtered.length !== 0;
-      pager.hidden = filtered.length <= PAGE_SIZE;
-      pageInfo.textContent = 'Page ' + page + ' of ' + pages;
-      prevBtn.disabled = page <= 1;
-      nextBtn.disabled = page >= pages;
-
-      var label = cat === 'all' ? 'models' : cat;
-      resultCount.textContent = filtered.length + ' ' + label + ' · updated 2026-07';
-    }
-
-    chips.forEach(function(chip){
-      chip.addEventListener('click', function(){
-        cat = chip.getAttribute('data-cat'); page = 1;
-        chips.forEach(function(c){ c.classList.remove('is-active'); c.setAttribute('aria-selected','false'); });
-        chip.classList.add('is-active'); chip.setAttribute('aria-selected','true');
-        render();
+      /* theme toggle */
+      document.getElementById('themeToggle').addEventListener('click', function () {
+        var current = root.getAttribute('data-theme');
+        if (!current) { current = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+        root.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
       });
-    });
-    prevBtn.addEventListener('click', function(){ if(page > 1){ page--; render(); scrollToCards(); } });
-    nextBtn.addEventListener('click', function(){ page++; render(); scrollToCards(); });
 
-    function scrollToCards(){
-      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      document.getElementById('cards').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
-    }
+      /* category filter + pagination (5 per page) */
+      var PAGE_SIZE = 5;
+      var cards = Array.prototype.slice.call(document.querySelectorAll('#cards .card'));
+      var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+      var pager = document.getElementById('pager');
+      var prevBtn = document.getElementById('prevPage');
+      var nextBtn = document.getElementById('nextPage');
+      var pageInfo = document.getElementById('pageInfo');
+      var resultCount = document.getElementById('resultCount');
+      var emptyMsg = document.getElementById('empty');
+      var cat = 'all', page = 1;
 
-    render();
-  })();
-</script>
+      /* live category counts on the chips */
+      chips.forEach(function (chip) {
+        var c = chip.getAttribute('data-cat');
+        var n = c === 'all' ? cards.length : cards.filter(function (el) { return el.getAttribute('data-category') === c; }).length;
+        var badge = chip.querySelector('.chip-n');
+        if (badge) badge.textContent = n;
+      });
+
+      function matches(el) { return cat === 'all' || el.getAttribute('data-category') === cat; }
+
+      function render() {
+        var filtered = cards.filter(matches);
+        var pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        if (page > pages) page = pages;
+        var start = (page - 1) * PAGE_SIZE;
+
+        cards.forEach(function (el) { el.hidden = true; });
+        filtered.slice(start, start + PAGE_SIZE).forEach(function (el) { el.hidden = false; });
+
+        emptyMsg.hidden = filtered.length !== 0;
+        pager.hidden = filtered.length <= PAGE_SIZE;
+        pageInfo.textContent = 'Page ' + page + ' of ' + pages;
+        prevBtn.disabled = page <= 1;
+        nextBtn.disabled = page >= pages;
+
+        var label = cat === 'all' ? 'models' : cat;
+        resultCount.textContent = filtered.length + ' ' + label + ' · updated 2026-07';
+      }
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          cat = chip.getAttribute('data-cat'); page = 1;
+          chips.forEach(function (c) { c.classList.remove('is-active'); c.setAttribute('aria-selected', 'false'); });
+          chip.classList.add('is-active'); chip.setAttribute('aria-selected', 'true');
+          render();
+        });
+      });
+      prevBtn.addEventListener('click', function () { if (page > 1) { page--; render(); scrollToCards(); } });
+      nextBtn.addEventListener('click', function () { page++; render(); scrollToCards(); });
+
+      function scrollToCards() {
+        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        document.getElementById('cards').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      }
+
+      render();
+    })();
+  </script>
 </body>
+
 </html>
