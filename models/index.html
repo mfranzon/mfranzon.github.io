@@ -665,7 +665,7 @@
         shown <strong>working on real footage</strong>, with the recipe it was built from and a single command to run it
         on your own video. No sign-up, no upload: just the results and the code.</p>
       <div class="hero-meta">
-        <span>MODELS <b>3</b></span>
+        <span>MODELS <b>4</b></span>
         <span>STACK <b><a href="https://github.com/computer-vision-with-marco/yolo-training-template">YOLO Training
               Template</a></b></span>
         <span>RUNTIME <b>Apple Silicon / MPS</b></span>
@@ -677,14 +677,14 @@
   <main class="wrap">
     <div class="section-head">
       <h2>// current models</h2>
-      <span class="count" id="resultCount">3 tracked &middot; updated 2026-07</span>
+      <span class="count" id="resultCount">4 tracked &middot; updated 2026-07</span>
     </div>
 
     <div class="filters" id="filters" role="tablist" aria-label="Filter models by category">
       <button class="chip is-active" type="button" data-cat="all" role="tab" aria-selected="true">All <span
-          class="chip-n">3</span></button>
+          class="chip-n">4</span></button>
       <button class="chip" type="button" data-cat="detection" role="tab" aria-selected="false">Detection <span
-          class="chip-n">1</span></button>
+          class="chip-n">2</span></button>
       <button class="chip" type="button" data-cat="segmentation" role="tab" aria-selected="false">Segmentation <span
           class="chip-n">1</span></button>
       <button class="chip" type="button" data-cat="tracking" role="tab" aria-selected="false">Tracking <span
@@ -692,6 +692,38 @@
     </div>
 
     <div class="cards" id="cards">
+
+      <!-- POTHOLE -->
+      <article class="card" data-category="detection">
+        <div class="viewport">
+          <span class="conf"><span class="rec"></span>pothole 0.64 &middot; 0.43</span>
+          <div class="brackets" aria-hidden="true"><span class="tl"></span><span class="tr"></span><span
+              class="bl"></span><span class="br"></span></div>
+          <video src="media/pothole.mp4" poster="media/pothole.jpg" autoplay muted loop playsinline preload="metadata"
+            aria-label="Pothole detection running on dashcam footage of a damaged rural road"></video>
+        </div>
+        <div class="spec">
+          <span class="task-tag">Detection &middot; road inspection</span>
+          <h3>Road Pothole Detector</h3>
+          <p class="desc">Finetuned to flag <b>road potholes</b> from dashcam and street-level footage. On a battered
+            rural road it boxed <b>multiple defects per frame</b>, holding pothole calls through puddles and gravel so a
+            drive turns into a geotagged map of pavement damage.</p>
+          <dl class="facts">
+            <dt>Base</dt>
+            <dd>YOLO26m</dd>
+            <dt>Class</dt>
+            <dd>pothole</dd>
+            <dt>Data</dt>
+            <dd>pothole.yaml &middot; 30 epochs</dd>
+            <dt>Image size</dt>
+            <dd><span class="num">512</span> px</dd>
+          </dl>
+          <div class="links">
+            <a class="weights" href="https://huggingface.co/mfranzon/pothole-yolo26">&#8595; Weights on Hugging
+              Face</a>
+          </div>
+        </div>
+      </article>
 
       <!-- FIRE -->
       <article class="card" data-category="detection">
